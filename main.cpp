@@ -17,7 +17,7 @@
 #include <fstream>
 
 // Local Includes
-#include "J3NI_Daemon.h"
+#include "DaemonServer.h"
 
 // Setup local log file
 std::ofstream log_file(
@@ -25,8 +25,8 @@ std::ofstream log_file(
 
 int main(int args, char** argv)
 {
-    J3NI_Daemon udp_daemon(8080);
-    udp_daemon.startDaemon();
+    DaemonServer udpDaemon(8080);
+    udpDaemon.startDaemon();
     
     //! \todo   Signal Handling
     
@@ -34,11 +34,11 @@ int main(int args, char** argv)
     openlog("IpmiDaemon", LOG_PID, LOG_DAEMON);
     syslog(LOG_NOTICE, "Daemon Started");
     
-    udp_daemon.startServer();
+    udpDaemon.startServer();
     
     while(1)
     {
-        udp_daemon.receiveData();
+        udpDaemon.receiveData();
         
         //! \todo   remaining implementation
         sleep(30);

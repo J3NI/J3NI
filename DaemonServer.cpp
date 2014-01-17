@@ -1,5 +1,5 @@
 //
-//  J3NI_Daemon.cpp
+//  DaemonServer.cpp
 //
 //  Copyright (c) 2014 J3NI. All rights reserved.
 //
@@ -19,9 +19,30 @@
 
 #include <fstream>
 
-#include "J3NI_Daemon.h"
+#include "DaemonServer.h"
 
-void J3NI_Daemon::startDaemon() {
+extern std::ofstream log_file;
+
+const int DaemonServer::BUF_SIZE = 2048;
+
+DaemonServer::DaemonServer()
+    : port(-1), username(NULL), password(NULL)
+{
+}
+
+DaemonServer::DaemonServer(int port)
+    : port(port), username(NULL), password(NULL)
+{
+}
+
+DaemonServer::DaemonServer(int port, char* uname, char* pass)
+    : port(port), username(uname), password(pass)
+{
+}
+
+
+void DaemonServer::startDaemon()
+{
     pid_t pid, sid;
     
     // Fork processes
@@ -54,8 +75,8 @@ void J3NI_Daemon::startDaemon() {
         exit(EXIT_SUCCESS);
     }
     
-    this->pid = pid;
-    this->sid = sid;
+    pid = pid;
+    sid = sid;
     
     // Set File Permissions
     umask(0); // 027 may be better?
@@ -67,38 +88,45 @@ void J3NI_Daemon::startDaemon() {
 }
 
 
-void J3NI_Daemon::startServer(){
+void DaemonServer::startServer()
+{
     /* create a UDP socket */
     
-	if ((this->sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
 		perror("cannot create socket\n");
 	}
     
 	/* bind the socket to any valid IP address and a specific port */
     
-	memset((char *)&this->local_addr, 0, sizeof(this->local_addr));
-	this->local_addr.sin_family = AF_INET;
-	this->local_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	this->local_addr.sin_port = htons(this->port);
+	memset((char *)&localAddr, 0, sizeof(localAddr));
+	localAddr.sin_family = AF_INET;
+	localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	localAddr.sin_port = htons(port);
     
-	if (bind(this->sock, (struct sockaddr *)&this->local_addr, sizeof(this->local_addr)) < 0) {
+	if (bind(sock, (struct sockaddr *)&localAddr, sizeof(localAddr)) < 0)
+    {
 		perror("bind failed");
 	}
 }
 
-void J3NI_Daemon::receiveData(){
-    int recvlen;
-    int msgcnt = 0;
-    char buf[BUFSIZE];
+void DaemonServer::receiveData()
+{
+    long int recvLen = 0;
+    int msgCount = 0;
+    char* buf = new char[BUF_SIZE];
     
-    	socklen_t addrlen = sizeof(this->remote_addr);	
+    socklen_t addrlen = sizeof(remoteAddr);
     
-    recvlen = recvfrom(this->sock, buf, BUFSIZE, 0, (struct sockaddr *)&this->remote_addr, &addrlen);
-    if (recvlen > 0) {
-        buf[recvlen] = 0;
-        //printf("received message: \"%s\" (%d bytes)\n", buf, recvlen);
+    recvLen = recvfrom(sock, buf, BUF_SIZE, 0, (struct sockaddr *)&remoteAddr, &addrlen);
+    if (recvLen > 0)
+    {
+        buf[recvLen] = 0;
         log_file << "Received a message" << std::endl;
     }
     else
+    {
         log_file << "Something went wrong\n" << std::endl;
+    }
+    delete [] buf;
 }
