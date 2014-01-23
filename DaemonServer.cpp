@@ -16,10 +16,13 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 
 #include <fstream>
+//#include <tr1/array>
 
 #include "DaemonServer.h"
+#include "MsgHandler.h"
 
 extern std::ofstream log_file;
 
@@ -113,20 +116,47 @@ void DaemonServer::startServer()
 void DaemonServer::receiveData()
 {
     long int recvLen = 0;
-    int msgCount = 0;
-    char* buf = new char[BUF_SIZE];
-    
+    long int respLen = 0;
+
+    unsigned char* buf = new unsigned char[BUF_SIZE];
+    //std::tr1::array<unsigned char, BUF_SIZE>* buf;
+    unsigned char* response = new unsigned char[BUF_SIZE];
+
     socklen_t addrlen = sizeof(remoteAddr);
     
     recvLen = recvfrom(sock, buf, BUF_SIZE, 0, (struct sockaddr *)&remoteAddr, &addrlen);
+
     if (recvLen > 0)
     {
-        buf[recvLen] = 0;
-        log_file << "Received a message" << std::endl;
+        // Print received message to log
+        log_file << "Received a message of size "<< recvLen << std::endl;
+        for (int i = 0; i < recvLen; i++)
+            log_file << std::hex << (int)buf[i]<< " | " << std::flush;  
+        log_file << std::dec <<  std::endl;
+        
+        // Determine appropriate response
+        if (recvLen == 12 && MsgHandler::is_ping(buf)) 
+            respLen = MsgHandler::pong(buf, response);
+        else
+            respLen = MsgHandler::processRequest(buf, response);
+      
+        // Send response
+        if (sendto(sock, response, respLen , 0, (struct sockaddr *)&remoteAddr, addrlen) < 0)
+            log_file << "Error sending response" << std::endl;
+        else
+            log_file << "Sent a message of size "<< respLen << std::endl;
+
+        // Print sent message to log 
+        for (int i = 0; i < respLen; i++)
+            log_file << std::hex << (int)response[i]<< " | " << std::flush;
+        log_file << std::dec <<  std::endl;
+        
+        // Empty request buffer
+        delete [] buf;
     }
     else
     {
-        log_file << "Something went wrong\n" << std::endl;
+        log_file << "Could not receive request." << std::endl;
     }
-    delete [] buf;
+    
 }

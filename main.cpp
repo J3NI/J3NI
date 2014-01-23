@@ -25,7 +25,7 @@ std::ofstream log_file(
 
 int main(int args, char** argv)
 {
-    DaemonServer udpDaemon(8080);
+    DaemonServer udpDaemon(8087);
     udpDaemon.startDaemon();
     
     //! \todo   Signal Handling
@@ -41,7 +41,7 @@ int main(int args, char** argv)
         udpDaemon.receiveData();
         
         //! \todo   remaining implementation
-        sleep(30);
+        sleep(2);
     }
     
     return 1;

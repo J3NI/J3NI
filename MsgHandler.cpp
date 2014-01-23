@@ -1,0 +1,36 @@
+#include "MsgHandler.h"
+//#include "IpmiMessage.h"
+
+unsigned char pingRq[12] = {0x06,0x00,0xff,0x06,0x00,0x00,0x11,0xbe,0x80,0x00,0x00,0x00};
+unsigned char pongRs[27] = {  0x06,0x00,0xff,0x06,0x00,0x00,0x11,0xbe,
+                            0x40,0x00,0x10,0x00,0x00,0x11,0xbe,
+                            0x00,0x00,0x00,0x00,0x81,0x00,0x00,0x00,
+                            0x00,0x00,0x00,0x00};
+bool MsgHandler::is_ping(unsigned char* buf )
+{
+    int n = 12;
+    while (--n >= 0 && (n==9 || buf[n] == pingRq[n]));
+    return n != 0;    
+}
+
+int MsgHandler::pong(unsigned char* buf, unsigned char* rsp){
+    for (int i = 0; i < 27; i++) rsp[i] = pongRs[i];
+    rsp[9] = buf[9];
+    return 27;
+}
+
+int MsgHandler::processRequest(unsigned char* buf, unsigned char* rsp){
+    //IpmiMessage returnMsg(buf);
+    //returnMsg.setAuthCapabData();
+    //return returnMsg.serialize(rsp);
+    unsigned char temp[30] = {  0x06 , 0x00 , 0xff , 0x07 , 0x00 , 0x00 ,
+                                0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 ,
+                                0x00 , 0x10 , 0x81 , 0x1c , 0x63 , 0x20 ,
+                                0x00 , 0x38 , 0x00 , 0x01 , 0x01 , 0x1b ,
+                                0x01 , 0x00 , 0x00 , 0x00 , 0x00 , 0x69};
+    for (int i = 0; i <30; i++) {
+        rsp[i] = temp[i];
+    }
+    
+    return 30;
+}
