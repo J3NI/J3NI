@@ -7,6 +7,8 @@
 #ifndef DAEMON_SERVER_H
 #define DAEMON_SERVER_H
 
+#include <netdb.h>
+
 class DaemonServer {
 	private:
     

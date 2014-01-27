@@ -21,8 +21,8 @@
 #include <fstream>
 //#include <tr1/array>
 
-#include "DaemonServer.h"
-#include "MsgHandler.h"
+#include <DaemonServer.h>
+#include <MsgHandler.h>
 
 extern std::ofstream log_file;
 
@@ -87,7 +87,7 @@ void DaemonServer::startDaemon()
     // Run in root directory
     chdir("/");
     
-    log_file << "Daemon started successfully" << std::endl;
+    log_file << "Daemon started successfully\n";
 }
 
 
@@ -108,7 +108,7 @@ void DaemonServer::startServer()
 	localAddr.sin_port = htons(port);
     
 	if (bind(sock, (struct sockaddr *)&localAddr, sizeof(localAddr)) < 0)
-    {
+   {
 		perror("bind failed");
 	}
 }
@@ -150,13 +150,13 @@ void DaemonServer::receiveData()
         for (int i = 0; i < respLen; i++)
             log_file << std::hex << (int)response[i]<< " | " << std::flush;
         log_file << std::dec <<  std::endl;
-        
-        // Empty request buffer
-        delete [] buf;
     }
     else
     {
         log_file << "Could not receive request." << std::endl;
     }
+    
+    // Empty request buffer
+    delete [] buf;
     
 }
