@@ -28,7 +28,7 @@ std::ofstream log_file(
 int main(int args, char** argv)
 {
 
-    int portnum=8080;
+    int portnum=8087;
     char* user = NULL;
     char* password = NULL;
 
@@ -73,7 +73,7 @@ int main(int args, char** argv)
 	    exit(EXIT_FAILURE);
     }
     
-    J3NI_Daemon* udp_daemon = new J3NI_Daemon(portnum, user, password);
+    DaemonServer* udp_daemon = new J3NI_Daemon(portnum, user, password);
 
     udp_daemon->startDaemon();
     
