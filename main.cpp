@@ -15,6 +15,8 @@
 #include <netdb.h>
 
 #include <fstream>
+#include <iostream>
+#include <cstring>
 
 // Local Includes
 #include "DaemonServer.h"
@@ -25,8 +27,55 @@ std::ofstream log_file(
 
 int main(int args, char** argv)
 {
-    DaemonServer udpDaemon(8087);
-    udpDaemon.startDaemon();
+
+    int portnum=8080;
+    char* user = NULL;
+    char* password = NULL;
+
+    if(args==1){ 
+    }
+    else if(args==3 && (strcmp(argv[1],"-p")==0)){
+	    portnum = atoi(argv[2]);
+	    if(portnum==0){
+		    std::cout<< "Invalid input entered" << std::endl;
+		    exit(EXIT_FAILURE);
+	    }
+    }
+    else if(args==7){
+	    bool portSet = false;
+	    bool userSet = false;
+	    bool passSet = false;
+	   for(int i=1; i<6; i+=2){
+		    if(strcmp(argv[i],"-p")==0 && !portSet){
+			    portnum=atoi(argv[i+1]);
+			    if(portnum==0){
+				    std::cout<< "Invalid input entered" << std::endl;
+				    exit(EXIT_FAILURE);
+			    }		
+			    portSet=true;
+		    }
+		    if(strcmp(argv[i],"-u")==0 && !userSet){
+			    user=argv[i+1];
+			    userSet=true;
+		    }
+		    if(strcmp(argv[i],"-k")==0 && !passSet){
+			    password=argv[i+1];
+			    passSet=true;
+		    }		 
+	    }
+	    if(!portSet || !userSet || !passSet){	// If not all fields are set, exit
+		    std::cout<< "Invalid input entered" << std::endl;
+		    exit(EXIT_FAILURE);
+	    }
+    }
+    else{
+	    std::cout<< "Invalid input entered" << std::endl;
+	    exit(EXIT_FAILURE);
+    }
+    
+    J3NI_Daemon* udp_daemon = new J3NI_Daemon(portnum, user, password);
+
+    udp_daemon->startDaemon();
     
     //! \todo   Signal Handling
     
