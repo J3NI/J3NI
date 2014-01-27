@@ -73,9 +73,9 @@ int main(int args, char** argv)
 	    exit(EXIT_FAILURE);
     }
     
-    DaemonServer* udp_daemon = new J3NI_Daemon(portnum, user, password);
+    DaemonServer* udpDaemon = new DaemonServer(portnum, user, password);
 
-    udp_daemon->startDaemon();
+    udpDaemon->startDaemon();
     
     //! \todo   Signal Handling
     
@@ -83,11 +83,10 @@ int main(int args, char** argv)
     openlog("IpmiDaemon", LOG_PID, LOG_DAEMON);
     syslog(LOG_NOTICE, "Daemon Started");
     
-    udpDaemon.startServer();
     
     while(1)
     {
-        udpDaemon.receiveData();
+        udpDaemon->receiveData();
         
         //! \todo   remaining implementation
         sleep(2);
