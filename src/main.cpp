@@ -11,6 +11,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 // Local Includes
 #include <DaemonServer.h>
