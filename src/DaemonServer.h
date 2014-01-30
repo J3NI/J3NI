@@ -4,13 +4,15 @@
 //  Copyright (c) 2014 J3NI. All rights reserved.
 //
 
-#ifndef DAEMON_SERVER_H
-#define DAEMON_SERVER_H
+#ifndef DAEMONSERVER_H
+#define DAEMONSERVER_H
 
 #include <netdb.h>
 
+class IpmiMessage;
+
 class DaemonServer {
-	private:
+private:
     
     int port;
     char* username;
@@ -25,15 +27,20 @@ class DaemonServer {
     static const int BUF_SIZE;
 
 	
-	public:
+private:
+    void logMessage(const IpmiMessage& msg);
     
-    DaemonServer();
-    DaemonServer(int port);
-    DaemonServer(int port, char* uname, char* pass);
+public:
     
-    void startDaemon();
-    void startServer();
-    void receiveData();
+   DaemonServer();
+   DaemonServer(int port);
+   DaemonServer(int port, char* uname, char* pass);
+   
+   ~DaemonServer(){};
+    
+   void startDaemon();
+   void startServer();
+   void receiveData();
 
 };
 

@@ -19,10 +19,11 @@
 #include <netinet/in.h>
 
 #include <fstream>
-//#include <tr1/array>
+#include <iomanip>
 
 #include <DaemonServer.h>
 #include <MsgHandler.h>
+#include <IpmiMessage.h>
 
 extern std::ofstream log_file;
 
@@ -108,55 +109,59 @@ void DaemonServer::startServer()
 	localAddr.sin_port = htons(port);
     
 	if (bind(sock, (struct sockaddr *)&localAddr, sizeof(localAddr)) < 0)
-   {
+    {
 		perror("bind failed");
 	}
 }
 
 void DaemonServer::receiveData()
 {
-    long int recvLen = 0;
-    long int respLen = 0;
+    int recvLen = 0;
 
     unsigned char* buf = new unsigned char[BUF_SIZE];
-    //std::tr1::array<unsigned char, BUF_SIZE>* buf;
-    unsigned char* response = new unsigned char[BUF_SIZE];
 
     socklen_t addrlen = sizeof(remoteAddr);
     
-    recvLen = recvfrom(sock, buf, BUF_SIZE, 0, (struct sockaddr *)&remoteAddr, &addrlen);
+    recvLen = (int)recvfrom(sock, buf, BUF_SIZE, 0, (struct sockaddr *)&remoteAddr, &addrlen);
 
     if (recvLen > 0)
     {
         // Print received message to log
-        log_file << "Received a message of size "<< recvLen << std::endl;
-        for (int i = 0; i < recvLen; i++)
-            log_file << std::hex << (int)buf[i]<< " | " << std::flush;  
-        log_file << std::dec <<  std::endl;
+        IpmiMessage recievedMsg(buf, recvLen);
+        log_file << "Received a message of size "<< recievedMsg.length() << std::endl;
+        logMessage(recievedMsg);
         
         // Determine appropriate response
-        if (recvLen == 12 && MsgHandler::is_ping(buf)) 
-            respLen = MsgHandler::pong(buf, response);
+        IpmiMessage response;
+        if (MsgHandler::isPing(recievedMsg))
+            MsgHandler::pong(recievedMsg, response);
         else
-            respLen = MsgHandler::processRequest(buf, response);
+            MsgHandler::processRequest(recievedMsg, response);
       
         // Send response
-        if (sendto(sock, response, respLen , 0, (struct sockaddr *)&remoteAddr, addrlen) < 0)
-            log_file << "Error sending response" << std::endl;
+        if (sendto(sock, response.message(), response.length(), 0, (struct sockaddr *)&remoteAddr, addrlen) < 0)
+            log_file << "Error sending response\n";
         else
-            log_file << "Sent a message of size "<< respLen << std::endl;
-
-        // Print sent message to log 
-        for (int i = 0; i < respLen; i++)
-            log_file << std::hex << (int)response[i]<< " | " << std::flush;
-        log_file << std::dec <<  std::endl;
+            // Print sent message to log
+            log_file << "Sent a message of size "<< response.length() << std::endl;
+        
+        logMessage(response);
     }
     else
     {
-        log_file << "Could not receive request." << std::endl;
+        log_file << "Could not receive request.\n";
     }
     
     // Empty request buffer
     delete [] buf;
     
 }
+
+void DaemonServer::logMessage(const IpmiMessage& msg)
+{
+    log_file << std::hex << std::setfill('0');
+    for (int i = 0; i < msg.length(); i++)
+        log_file << std::setw(2) << msg[i] << " | ";
+    log_file << std::dec << std::setfill(' ') <<  std::endl << std::flush;
+}
+

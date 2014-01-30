@@ -82,7 +82,7 @@ int main(int args, char** argv)
         sleep(2);
     }
    
-   delete udpDaemon;
+    delete udpDaemon;
     return 0;
 }
 

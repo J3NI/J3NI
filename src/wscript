@@ -18,8 +18,7 @@ def configure(conf):
 
 def build(bld):
     bld.program(
-        source       = ['main.cpp', 'DaemonServer.cpp', 'MsgHandler.cpp'],
-        #source       = ['*.cpp'],
+        source       = ['main.cpp', 'DaemonServer.cpp', 'MsgHandler.cpp', 'IpmiMessage.cpp'],
         target       = 'J3NI',
 
         includes     = ['.'],
