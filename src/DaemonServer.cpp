@@ -161,7 +161,7 @@ void DaemonServer::logMessage(const IpmiMessage& msg)
 {
     log_file << std::hex << std::setfill('0');
     for (int i = 0; i < msg.length(); i++)
-        log_file << std::setw(2) << msg[i] << " | ";
+        log_file << std::setw(2) << (int)msg[i] << " | ";
     log_file << std::dec << std::setfill(' ') <<  std::endl << std::flush;
 }
 
