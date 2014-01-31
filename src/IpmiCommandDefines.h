@@ -3,7 +3,7 @@
 //  J3NI
 //
 //  Created by Neil on 2014-01-29.
-//  Copyright (c) 2014 Neil. All rights reserved.
+//  Copyright (c) 2014 J3NI. All rights reserved.
 //
 
 #ifndef IPMICOMMANDDEFINES_H

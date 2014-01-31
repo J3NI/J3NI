@@ -11,17 +11,28 @@ top = '.'
 out = '.build'
 
 def options(opt):
-	opt.load('compiler_cxx')
+    opt.add_option('--test', default=False, action='store_true', help='Create cxxtest runner executable')
+    opt.load('compiler_cxx')
 
 def configure(conf):
-	conf.load('compiler_cxx')
+    conf.load('compiler_cxx')
 
 def build(bld):
-    bld.program(
-        source       = ['main.cpp', 'DaemonServer.cpp', 'MsgHandler.cpp', 'IpmiMessage.cpp'],
-        target       = 'J3NI',
+    source_files = ['DaemonServer.cpp', 'MsgHandler.cpp', 'IpmiMessage.cpp']
 
-        includes     = ['.'],
+    if bld.options.test :
+        run_str = "../tools/cxxtest-4.3/bin/cxxtestgen  --error-printer  -o  ../test/runner.cpp  ../test/test.h --include ipmiMessage.h --include IpmiCommandDefines.h --include MsgHandler.h --include DaemonServer.h"
+        bld.exec_command(run_str)
+        source_files.append('../test/runner.cpp')
+        exec_target = 'TestJ3NI'
+    else:
+        source_files.append('main.cpp') 
+        exec_target = 'J3NI'
+        
+    bld.program(
     
+        source       = source_files,
+        target       = exec_target,
+        includes     = ['../tools/cxxtest-4.3/', '.'],
         install_path = '../bin'
     )

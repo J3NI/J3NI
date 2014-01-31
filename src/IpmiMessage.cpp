@@ -3,7 +3,7 @@
 //  J3NI
 //
 //  Created by Neil on 2014-01-27.
-//  Copyright (c) 2014 Neil. All rights reserved.
+//  Copyright (c) 2014 J3NI. All rights reserved.
 //
 
 #include <exception>
@@ -37,7 +37,7 @@ IpmiMessage::~IpmiMessage()
 
 bool IpmiMessage::setMessage(const unsigned char* msg, unsigned int msgLength)
 {
-    if(msgLength < MESSAGE_HEADER_LENGTH)
+    if(msgLength < MESSAGE_HEADER_LENGTH && msgLength != PING_LENGTH)
     {
         return false;
     }
