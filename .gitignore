@@ -1,5 +1,5 @@
 *.xcodeproj
 *.log
 .*
-bin
+/bin
 test/runner.cpp
