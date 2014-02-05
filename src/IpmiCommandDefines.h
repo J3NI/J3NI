@@ -40,6 +40,8 @@ namespace IpmiCommandDefines
     const unsigned int DATA_START_INDEX         = 20;
     
     const unsigned int MESSAGE_HEADER_LENGTH    = 21;
+    
+    const unsigned int COMP_CODE_OK             = 0x00;
 
 }
 

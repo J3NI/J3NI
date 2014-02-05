@@ -108,6 +108,16 @@ unsigned int IpmiMessage::length() const
     return msgLength_;
 }
 
+unsigned char* IpmiMessage::data() const
+{
+    int dataSize = msgLength_ - (DATA_START_INDEX + 1);
+    unsigned char * dataBytes = new unsigned char[dataSize];
+    for (int i = DATA_START_INDEX; i < dataSize; i++) dataBytes[i] = message_[DATA_START_INDEX +i];
+    return dataBytes;
+}
+
+
+
 unsigned char& IpmiMessage::operator[](const int index)
 {
     return message_[index];

@@ -29,6 +29,8 @@ public:
     unsigned char* message() const;
     unsigned int length() const;
     
+    unsigned char* data() const;
+    
     unsigned char& operator[](const int index);
     const unsigned char& operator[](const int index) const;
  

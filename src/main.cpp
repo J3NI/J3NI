@@ -73,7 +73,6 @@ int main(int args, char** argv)
 
     udpDaemon->startDaemon();
     
-    //! \todo   Signal Handling
     udpDaemon->startServer();
     
     while(1)
