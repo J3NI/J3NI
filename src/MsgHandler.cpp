@@ -6,24 +6,6 @@
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
 
-cmdProcessor::cmdProcessor()
-{
-    cmds[0x38] = &cmdProcessor::GetChannelAuthCMD;
-    cmds[0x39] = &cmdProcessor::GetSessionChalCMD;
-    cmds[0x3a] = &cmdProcessor::ActSessionCMD;
-    cmds[0x3b] = &cmdProcessor::SetSessionPrivCMD;
-    cmds[0x3c] = &cmdProcessor::CloseSessionCMD;
-}
-
-int cmdProcessor::process(const unsigned char& index, const unsigned char* request, unsigned char* response ){
-    if  ( cmds.find(index) != cmds.end() ) {
-        cmd fp = cmds[index];
-        return (this->*fp)(request, response);
-    } else {
-        response[0] =  0xFF ;
-        return 1;
-    }
-}
 
 bool MsgHandler::isPing(const IpmiMessage& message)
 {
@@ -45,14 +27,25 @@ void MsgHandler::pong(const IpmiMessage& message, IpmiMessage& response)
 void MsgHandler::processRequest(const IpmiMessage& message,
                                 IpmiMessage& response)
 {
-    cmdProcessor ipmiSubset;
-    unsigned char * respData = new unsigned char[42];
+    cmdMap cmds;
+    cmds[0x38] = new GetChannelAuthCMD();
+    cmds[0x39] = new GetSessionChalCMD();
+    cmds[0x3a] = new ActSessionCMD();
+    cmds[0x3b] = new SetSessionPrivCMD();
+    cmds[0x3c] = new CloseSessionCMD();
     
-    int respLen = ipmiSubset.process(message[COMMAND_INDEX], message.data(), respData);
+    unsigned char * respData = new unsigned char[42];
+    int respLen = 1;
+    
+    if  ( cmds.find(message[COMMAND_INDEX]) != cmds.end() ) {
+        respLen = cmds[message[COMMAND_INDEX]]->process(message.data(), respData);
+    } else {
+        respData[0] = 0xFF;
+    }
     message.serialize(respData, respLen, response);
 }
 
-int cmdProcessor::GetChannelAuthCMD(const unsigned char* request, unsigned char* response)
+ int GetChannelAuthCMD::process(const unsigned char* request, unsigned char* response)
 {
     log_file << "In GetChannelAuthCMD" << std::endl;
  
@@ -63,7 +56,7 @@ int cmdProcessor::GetChannelAuthCMD(const unsigned char* request, unsigned char*
     
     return 9;
 }
-int cmdProcessor::GetSessionChalCMD(const unsigned char* request, unsigned char* response){
+ int GetSessionChalCMD::process(const unsigned char* request, unsigned char* response){
     log_file << "In GetSessionChalCMD" << std::endl;
 
     response[0] =  COMP_CODE_OK ;
@@ -77,19 +70,19 @@ int cmdProcessor::GetSessionChalCMD(const unsigned char* request, unsigned char*
     
     return 21;
 }
-int cmdProcessor::ActSessionCMD(const unsigned char* request, unsigned char* response){
+ int ActSessionCMD::process(const unsigned char* request, unsigned char* response){
     log_file << "In ActSessionCMD" << std::endl;
     for (int i = 0; i <4; i++) response[i+2] = request[i+19];
     response[10] = 0x04;
     return 11;
 }
-int cmdProcessor::SetSessionPrivCMD(const unsigned char* request, unsigned char* response){
+ int SetSessionPrivCMD::process(const unsigned char* request, unsigned char* response){
     log_file << "In SetSessionPrivCMD" << std::endl;
     response[0] =  0x00 ;
     response[1] =  request[0] ;
     return 2;
 }
-int cmdProcessor::CloseSessionCMD(const unsigned char* request, unsigned char* response){
+ int CloseSessionCMD::process(const unsigned char* request, unsigned char* response){
     log_file << "In CloseSessionCMD" << std::endl;
     return 1;
 }
