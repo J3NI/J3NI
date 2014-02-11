@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 # encoding: utf-8
-# Thomas Nagy, 2006-2010 (ita)
 
 # the following two variables are used by the target "waf dist"
 VERSION='0.0.1'
