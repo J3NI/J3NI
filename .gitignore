@@ -4,3 +4,4 @@
 /bin
 test/runner.cpp
 *.pyc
+parsetab.py

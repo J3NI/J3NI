@@ -15,11 +15,13 @@
 
 // Local Includes
 #include <DaemonServer.h>
+#include <MsgHandler.h>
 
 using namespace std;
 
 // Setup local log file
 ofstream log_file("J3NI_log_file.log", ios_base::out | ios_base::app );
+cmdMap cmds;
 
 int main(int args, char** argv)
 {
@@ -74,6 +76,8 @@ int main(int args, char** argv)
     udpDaemon->startDaemon();
     
     udpDaemon->startServer();
+    
+    MsgHandler::initCMD();
     
     while(1)
     {
