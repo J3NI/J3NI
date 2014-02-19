@@ -2,7 +2,6 @@
 //  IpmiCommandDefines.h
 //  J3NI
 //
-//  Created by Neil on 2014-01-29.
 //  Copyright (c) 2014 J3NI. All rights reserved.
 //
 
@@ -42,6 +41,8 @@ namespace IpmiCommandDefines
     const unsigned int MESSAGE_HEADER_LENGTH    = 21;
     
     const unsigned int COMP_CODE_OK             = 0x00;
+    const unsigned int CANNOT_EXEC_IN_CUR_STATE = 0xD5;
+    const unsigned int CANNOT_EXEC_DISABLED     = 0xD6;
 
 }
 

@@ -13,10 +13,12 @@ private:
     const static unsigned char capabFlag = 0x0B;
     
     const static unsigned char fruAddress = 0x00;// unspecified
-    const static unsigned char sdrAddress = 0x00;
-    const static unsigned char selAddress = 0x00;
-    const static unsigned char sysMgmtAddress = 0x00;
-    // Chassis Bridge address not provided - will assume BMC address
+    const static unsigned char sdrAddress = 0x20;
+    const static unsigned char selAddress = 0x20;
+    const static unsigned char sysMgmtAddress = 0x20;
+    
+    // Chassis Bridge address not provided - will assume BMC address, unless set
+    const static unsigned char bridgeAddress = 0x00;
     
 public:
     int process( const unsigned char* request, unsigned char* response );
