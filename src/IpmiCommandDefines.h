@@ -43,7 +43,8 @@ namespace IpmiCommandDefines
     const unsigned int COMP_CODE_OK             = 0x00;
     const unsigned int CANNOT_EXEC_IN_CUR_STATE = 0xD5;
     const unsigned int CANNOT_EXEC_DISABLED     = 0xD6;
-
+    
+    const unsigned int MAX_DATA_SIZE            = 42;
 }
 
 #endif

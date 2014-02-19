@@ -1,4 +1,3 @@
-#include <MsgHandler.h>
 #include <ChannelCMD.h>
 #include <IpmiCommandDefines.h>
 #include <fstream>

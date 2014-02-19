@@ -21,7 +21,6 @@ using namespace std;
 
 // Setup local log file
 ofstream log_file("J3NI_log_file.log", ios_base::out | ios_base::app );
-cmdMap cmds;
 
 int main(int args, char** argv)
 {
@@ -84,6 +83,7 @@ int main(int args, char** argv)
         udpDaemon->receiveData();
         sleep(2);
     }
+    MsgHandler::clearCMD();
    
     delete udpDaemon;
     return 0;

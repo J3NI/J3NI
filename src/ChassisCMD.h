@@ -1,9 +1,9 @@
 #ifndef CHASSISCMD_H
 #define CHASSISCMD_H
 
-class cmdProcessor;
+#include <I_Command.h>
 
-class  GetChassisCapabCMD:public cmdProcessor{
+class  GetChassisCapabCMD:public I_Command{
 private:
     // Capabilities Flag [7 - 4] = 0x0 (reserved)
     // [3] = 1 ( power interlock )
@@ -24,7 +24,7 @@ public:
     int process( const unsigned char* request, unsigned char* response );
 };
 
-class  GetChassisStatusCMD:public cmdProcessor{
+class  GetChassisStatusCMD:public I_Command{
 private:
     //Current Power State [7] - reserved
     // [6 - 5] = 11 (unknown)
@@ -62,17 +62,21 @@ public:
     int process( const unsigned char* request, unsigned char* response );
 };
 
-class  ChassisCntrlCMD:public cmdProcessor{
+class  ChassisCntrlCMD:public I_Command{
+private:
+    GetChassisStatusCMD* statusCmd_;
+    
+public:
+    ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd);
+    int process( const unsigned char* request, unsigned char* response );
+};
+
+class  ChassisResetCMD:public I_Command{
 public:
     int process( const unsigned char* request, unsigned char* response );
 };
 
-class  ChassisResetCMD:public cmdProcessor{
-public:
-    int process( const unsigned char* request, unsigned char* response );
-};
-
-class  ChassisIdentifyCMD:public cmdProcessor{
+class  ChassisIdentifyCMD:public I_Command{
 public:
     int process( const unsigned char* request, unsigned char* response );
 };
