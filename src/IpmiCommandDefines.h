@@ -42,6 +42,8 @@ namespace IpmiCommandDefines
     const unsigned int MESSAGE_HEADER_LENGTH    = 21;
     
     const unsigned int COMP_CODE_OK             = 0x00;
+    
+    const unsigned int MAX_DATA_SIZE            = 42;
 
 }
 

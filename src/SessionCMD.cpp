@@ -1,4 +1,3 @@
-#include <MsgHandler.h>
 #include <SessionCMD.h>
 #include <IpmiCommandDefines.h>
 #include <fstream>

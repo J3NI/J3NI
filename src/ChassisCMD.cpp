@@ -5,8 +5,6 @@
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
-extern cmdMap cmds;
-
 
 int  GetChassisCapabCMD::process( const unsigned char* request, unsigned char* response ){
     log_file << "Get Chassis Capabilities Command" << std::endl;
@@ -32,7 +30,7 @@ void GetChassisStatusCMD::setPowerState(unsigned char powerMask) {
     curPowerState = curPowerState && powerMask;
 }
 
-int  GetChassisStatusCMD::process( const unsigned char* request, unsigned char* response ){
+int GetChassisStatusCMD::process( const unsigned char* request, unsigned char* response ){
     if (request[0] == 0xFF ) setLastPowerEvent((int)response[0]);
     else if (request[0] == 0xFE ) setPowerState((int)response[0]);
     else {
@@ -45,16 +43,24 @@ int  GetChassisStatusCMD::process( const unsigned char* request, unsigned char* 
     
         return 4;
     }
+    response[0] = COMP_CODE_OK;
+    return 1;
 }
 
-int  ChassisCntrlCMD::process( const unsigned char* request, unsigned char* response ){
+ChassisCntrlCMD::ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd)
+{
+    statusCmd_ = chassisStatusCmd;
+}
+
+
+int ChassisCntrlCMD::process( const unsigned char* request, unsigned char* response ){
     log_file << "Chassis Control Command: " << std::flush;
     if (request[DATA_START_INDEX] == 0x00) {
         log_file << " power off " << std::endl;
-        cmds[0x01]->process(new unsigned char (0xFE), new unsigned char (0x1E));
+        statusCmd_->setPowerState(0x1E);
     } else if (request[DATA_START_INDEX] == 0x01) {
         log_file << " power on " << std::endl;
-       cmds[0x01]->process(new unsigned char (0xFF), new unsigned char (0x10));
+        statusCmd_->setLastPowerEvent(0x10);
     }
     
     response[0] = COMP_CODE_OK;
@@ -62,7 +68,7 @@ int  ChassisCntrlCMD::process( const unsigned char* request, unsigned char* resp
     return 1;
 }
 
-int  ChassisResetCMD::process( const unsigned char* request, unsigned char* response ){
+int ChassisResetCMD::process( const unsigned char* request, unsigned char* response ){
     response[0] = COMP_CODE_OK;
     
     return 1;
