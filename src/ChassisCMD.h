@@ -5,23 +5,27 @@
 
 class  GetChassisCapabCMD:public I_Command{
 private:
-    // Capabilities Flag [7 - 4] = 0x0 (reserved)
+    // Capabilities Flag - Read Only
+    // [7 - 4] = 0x0 (reserved)
     // [3] = 1 ( power interlock )
     // [2] = 1 ( diagnostic interrupt )
-    // [1] = 0 ( front panel lockout )
+    // [1] = 1 ( front panel lockout )
     // [0] = 0 ( intrusion sensor )
-    const static unsigned char capabFlag = 0x0B;
+    const static unsigned char capabFlag = 0x0E;
     
-    const static unsigned char fruAddress = 0x00;// unspecified
-    const static unsigned char sdrAddress = 0x20;
-    const static unsigned char selAddress = 0x20;
-    const static unsigned char sysMgmtAddress = 0x20;
+    // Aill assume BMC address by default, can set with Set Chassis Capabilities Command
+    unsigned char fruAddress;
+    unsigned char sdrAddress;
+    unsigned char selAddress;
+    unsigned char sysMgmtAddress;
     
-    // Chassis Bridge address not provided - will assume BMC address, unless set
-    const static unsigned char bridgeAddress = 0x00;
+    // Chassis Bridge address not provided, unless set
+    unsigned char bridgeAddress;
     
 public:
-    int process( const unsigned char* request, unsigned char* response );
+    GetChassisCapabCMD();
+    void setAllFields( const unsigned char* data, int bridgeSet);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
 
 class  GetChassisStatusCMD:public I_Command{
@@ -50,35 +54,78 @@ private:
     // [2] = 0 (drive fault)
     // [1] = 0 (front panel lockout active)
     // [0] = 0 (chassis intrusion active)
-    const static unsigned char miscChassisState = 0x00;
+    unsigned char miscChassisState;
     
     // Front Panel Button Capabilities not supported
     
     
 public:
     GetChassisStatusCMD();
-    void setPowerState(unsigned char powerMask);
+    void setPowerState(int powerState);
+    void setPowerPolicy(unsigned char policy);
+    unsigned char getPowerPolicy();
     void setLastPowerEvent(unsigned char eventByte);
-    int process( const unsigned char* request, unsigned char* response );
+    void setMiscChassisState(unsigned char chassisState);
+    int getCurrentPower();
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+class  ChassisResetCMD:public I_Command{
+public:
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+class  ChassisIdentifyCMD:public I_Command{
+public:
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+class  ChassisFrontPanelCMD:public I_Command{
+private:
+    GetChassisStatusCMD* statusCmd_;
+public:
+    ChassisFrontPanelCMD(GetChassisStatusCMD* chassisStatusCmd);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+class  SetChassisCapabCMD:public I_Command{
+private:
+    GetChassisCapabCMD* capabCmd_;
+public:
+    SetChassisCapabCMD(GetChassisCapabCMD* chassisCapabCmd);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+class  SetChassisPowerRestore:public I_Command{
+private:
+    GetChassisStatusCMD* statusCmd_;
+public:
+    SetChassisPowerRestore(GetChassisStatusCMD* chassisStatusCmd);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+class  SetChassisPowerCycle:public I_Command{
+public:
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+class  GetChassisRestartCause:public I_Command{
+private:
+    unsigned char restartCause;
+public:
+    GetChassisRestartCause();
+    void setRestartCause(unsigned char cause);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
 
 class  ChassisCntrlCMD:public I_Command{
 private:
     GetChassisStatusCMD* statusCmd_;
+    GetChassisRestartCause* restartCause_;
     
 public:
-    ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd);
-    int process( const unsigned char* request, unsigned char* response );
-};
-
-class  ChassisResetCMD:public I_Command{
-public:
-    int process( const unsigned char* request, unsigned char* response );
-};
-
-class  ChassisIdentifyCMD:public I_Command{
-public:
-    int process( const unsigned char* request, unsigned char* response );
+    ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd, GetChassisRestartCause* restartCause);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
 
 #endif

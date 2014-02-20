@@ -6,7 +6,6 @@
 #include <fstream>
 
 std::ofstream log_file("J3NI_test_log.log");
-cmdMap cmds;
 
 class J3NITestSuite : public CxxTest::TestSuite 
 {

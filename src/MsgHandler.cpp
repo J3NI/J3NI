@@ -15,12 +15,24 @@ MsgHandler::CommandMap MsgHandler::commands_;
 
 void MsgHandler::initCMD() {
     // Chassis Commands
-    commands_[0x00] = new GetChassisCapabCMD();
+    GetChassisCapabCMD* chassisCapab = new GetChassisCapabCMD();
     GetChassisStatusCMD* chassisStatus = new GetChassisStatusCMD();
+    GetChassisRestartCause* chassisRestartCause = new GetChassisRestartCause();
+    commands_[0x00] = chassisCapab;
     commands_[0x01] = chassisStatus;
-    commands_[0x02] = new ChassisCntrlCMD(chassisStatus);
+    commands_[0x02] = new ChassisCntrlCMD(chassisStatus, chassisRestartCause);
     commands_[0x03] = new ChassisResetCMD();
     commands_[0x04] = new ChassisIdentifyCMD();
+    commands_[0x0A] = new ChassisFrontPanelCMD(chassisStatus);
+    commands_[0x05] = new SetChassisCapabCMD(chassisCapab);
+    commands_[0x06] = new SetChassisPowerRestore(chassisStatus);
+    commands_[0x0B] = new SetChassisPowerCycle();
+    commands_[0x07] = chassisRestartCause;
+    /*
+    commands_[0x08] = new SetChassisBootOpt();
+    commands_[0x09] = new GetChassisBootOpt();
+    commands_[0x0F] = new GetChassisPOHCounter();
+    */
     
     // Channel Commands
     commands_[0x38] = new GetChannelAuthCMD();
@@ -65,7 +77,7 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     int respLen = 1;
     
     if  ( commands_.find(message[COMMAND_INDEX]) != commands_.end() ) {
-        respLen = commands_[message[COMMAND_INDEX]]->process(message.message(), respData);
+        respLen = commands_[message[COMMAND_INDEX]]->process(message.message(), message.length(), respData);
     } else {
         respData[0] = 0xFF;
     }

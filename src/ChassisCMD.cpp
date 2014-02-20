@@ -5,12 +5,11 @@
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
-<<<<<<< HEAD
-extern cmdMap cmds;
-=======
->>>>>>> 51eff7ee8b5be3140c68d52696d8ada92d509400
 
-int  GetChassisCapabCMD::process( const unsigned char* request, unsigned char* response ){
+GetChassisCapabCMD::GetChassisCapabCMD(): fruAddress(0x00), sdrAddress(0x20), selAddress(0x20), sysMgmtAddress(0x20), bridgeAddress(0x00) { }
+
+int  GetChassisCapabCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
     log_file << "Get Chassis Capabilities Command" << std::endl;
     
     response[0] = COMP_CODE_OK;
@@ -28,22 +27,52 @@ int  GetChassisCapabCMD::process( const unsigned char* request, unsigned char* r
     
 }
 
-GetChassisStatusCMD::GetChassisStatusCMD() : curPowerState(0x61), lastPowerEvent(0x00) { }
+void GetChassisCapabCMD::setAllFields(const unsigned char* data, int bridgeSet)
+{
+    fruAddress = data[DATA_START_INDEX+1];
+    sdrAddress = data[DATA_START_INDEX+2];
+    selAddress = data[DATA_START_INDEX+3];
+    sysMgmtAddress = data[DATA_START_INDEX+4];
+    if (bridgeSet) bridgeAddress = data[DATA_START_INDEX+5];
 
-void GetChassisStatusCMD::setLastPowerEvent(unsigned char eventByte) {
+}
+
+GetChassisStatusCMD::GetChassisStatusCMD() : curPowerState(0x61), lastPowerEvent(0x00), miscChassisState(0x00) { }
+
+void GetChassisStatusCMD::setLastPowerEvent(unsigned char eventByte)
+{
     lastPowerEvent = eventByte;
 }
 
-void GetChassisStatusCMD::setPowerState(unsigned char powerState) {
-    curPowerState = powerState;
+void GetChassisStatusCMD::setPowerState(int powerState)
+{
+    if (powerState == 0) curPowerState = curPowerState & 0xFE;
+    else curPowerState = curPowerState | 0x01;
 }
 
-int  GetChassisStatusCMD::process( const unsigned char* request, unsigned char* response ){
-    if (response == NULL) {
-        if (!request) return (int)curPowerState && 1;
-        setLastPowerEvent((int)request[0]);
-        setPowerState((int)request[1]);
-    } else {
+void GetChassisStatusCMD::setPowerPolicy(unsigned char policy)
+{
+    unsigned char mask = ( policy << 5 ) | 0x3F;
+    curPowerState = curPowerState & mask;
+}
+
+unsigned char GetChassisStatusCMD::getPowerPolicy()
+{
+    return (curPowerState >> 5) & 0x03;
+}
+
+void GetChassisStatusCMD::setMiscChassisState(unsigned char chassisState)
+{
+    miscChassisState = chassisState;
+}
+
+int GetChassisStatusCMD::getCurrentPower()
+{
+    return (int)(curPowerState & 0x01);
+}
+
+int  GetChassisStatusCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
         log_file << "Get Chassis Status Command" << std::endl;
     
         response[0] = COMP_CODE_OK;
@@ -52,54 +81,107 @@ int  GetChassisStatusCMD::process( const unsigned char* request, unsigned char* 
         response[3] = miscChassisState;
     
         return 4;
-    }
-    response[0] = COMP_CODE_OK;
-    return 1;
 }
 
-ChassisCntrlCMD::ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd)
+ChassisCntrlCMD::ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd, GetChassisRestartCause* restartCause)
 {
     statusCmd_ = chassisStatusCmd;
+    restartCause_ = restartCause;
 }
 
 
-int ChassisCntrlCMD::process( const unsigned char* request, unsigned char* response ){
+int ChassisCntrlCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
     log_file << "Chassis Control Command: " << std::flush;
     response[0] = COMP_CODE_OK;
     
     if (request[DATA_START_INDEX] == 0x00 || request[DATA_START_INDEX] == 0x05 ) {
         log_file << " power off " << std::endl;
-<<<<<<< HEAD
-        cmds[0x01]->process(new unsigned char [0x00, 0x60], NULL);
-    } else if (request[DATA_START_INDEX] == 0x01) {
-        log_file << " power on " << std::endl;
-        cmds[0x01]->process(new unsigned char [0x10, 0x61], NULL);
-    } else if (request[DATA_START_INDEX] == 0x02 || request[DATA_START_INDEX] == 0x03 ) {
-        if ( !cmds[0x01]->process(NULL, NULL) ) response[0] = CANNOT_EXEC_IN_CUR_STATE;
-        else cmds[0x01]->process(new unsigned char [0x00, 0x61], NULL);
-=======
-        statusCmd_->setPowerState(0x1E);
+        statusCmd_->setPowerState(0);
     } else if (request[DATA_START_INDEX] == 0x01) {
         log_file << " power on " << std::endl;
         statusCmd_->setLastPowerEvent(0x10);
->>>>>>> 51eff7ee8b5be3140c68d52696d8ada92d509400
+        statusCmd_->setPowerState(1);
+    } else if (request[DATA_START_INDEX] == 0x02 || request[DATA_START_INDEX] == 0x03 ) {
+        if ( !statusCmd_->getCurrentPower() ) response[0] = CANNOT_EXEC_IN_CUR_STATE;
+        else{
+            statusCmd_->setPowerState(1);
+            statusCmd_->setLastPowerEvent(0x00);
+            restartCause_->setRestartCause(0x01);
+        }
     }
     return 1;
 }
 
-<<<<<<< HEAD
-int  ChassisResetCMD::process( const unsigned char* request, unsigned char* response ){
+int  ChassisResetCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
     response[0] = CANNOT_EXEC_DISABLED;
-=======
-int ChassisResetCMD::process( const unsigned char* request, unsigned char* response ){
-    response[0] = COMP_CODE_OK;
-    
->>>>>>> 51eff7ee8b5be3140c68d52696d8ada92d509400
     return 1;
 }
 
 
-int  ChassisIdentifyCMD::process( const unsigned char* request, unsigned char* response ){
+int  ChassisIdentifyCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
     response[0] = COMP_CODE_OK;
     return 1;
+}
+
+ChassisFrontPanelCMD::ChassisFrontPanelCMD(GetChassisStatusCMD* chassisStatusCmd)
+{
+    statusCmd_ = chassisStatusCmd;
+}
+
+int ChassisFrontPanelCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
+    if (request[DATA_START_INDEX] == 0x00 || request[DATA_START_INDEX] == 0x01)
+        statusCmd_->setMiscChassisState(0x02);
+    response[0] = COMP_CODE_OK;
+    return 1;
+}
+
+
+SetChassisCapabCMD::SetChassisCapabCMD(GetChassisCapabCMD* chassisCapabCmd)
+{
+    capabCmd_ = chassisCapabCmd;
+}
+
+int SetChassisCapabCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
+    int bridgeSet = (reqLength - DATA_START_INDEX) - 1 ;
+    capabCmd_->setAllFields(request, bridgeSet );
+    response[0] = COMP_CODE_OK;
+    return 1;
+}
+
+SetChassisPowerRestore::SetChassisPowerRestore(GetChassisStatusCMD* chassisStatusCmd)
+{
+    statusCmd_ = chassisStatusCmd;
+}
+
+int SetChassisPowerRestore::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
+    statusCmd_->setPowerPolicy(request[DATA_START_INDEX]);
+    response[0] = COMP_CODE_OK;
+    response[1] = statusCmd_->getPowerPolicy();
+    return 1;
+}
+
+int  SetChassisPowerCycle::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
+    response[0] = COMP_CODE_OK;
+    return 1;
+}
+
+GetChassisRestartCause::GetChassisRestartCause():restartCause(0x00){ }
+
+void GetChassisRestartCause::setRestartCause(unsigned char cause){
+    restartCause = cause;
+}
+
+int  GetChassisRestartCause::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
+    response[0] = COMP_CODE_OK;
+    response[1] = restartCause;
+    response[2] = 0x01;
+    return 3;
 }

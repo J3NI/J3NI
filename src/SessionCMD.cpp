@@ -5,7 +5,7 @@
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
 
-int GetSessionChalCMD::process(const unsigned char* request, unsigned char* response){
+int GetSessionChalCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
     log_file << "In GetSessionChalCMD" << std::endl;
     
     response[0] =  COMP_CODE_OK ;
@@ -19,19 +19,19 @@ int GetSessionChalCMD::process(const unsigned char* request, unsigned char* resp
     
     return 21;
 }
-int ActSessionCMD::process(const unsigned char* request, unsigned char* response){
+int ActSessionCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
     log_file << "In ActSessionCMD" << std::endl;
     for (int i = 0; i <4; i++) response[i+2] = request[i+19];
     response[10] = 0x04;
     return 11;
 }
-int SetSessionPrivCMD::process(const unsigned char* request, unsigned char* response){
+int SetSessionPrivCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
     log_file << "In SetSessionPrivCMD" << std::endl;
     response[0] =  0x00 ;
     response[1] =  request[0] ;
     return 2;
 }
-int CloseSessionCMD::process(const unsigned char* request, unsigned char* response){
+int CloseSessionCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
     log_file << "In CloseSessionCMD" << std::endl;
     return 1;
 }

@@ -5,7 +5,7 @@
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
 
-int GetChannelAuthCMD::process(const unsigned char* request, unsigned char* response)
+int GetChannelAuthCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
     log_file << "In GetChannelAuthCMD" << std::endl;
     

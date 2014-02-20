@@ -14,7 +14,7 @@ public:
     I_Command() {};
     virtual ~I_Command() {};
     
-    virtual int process(const unsigned char* request,
+    virtual int process(const unsigned char* request, int reqLength,
                         unsigned char* response ) = 0;
     
 };
