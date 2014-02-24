@@ -30,6 +30,7 @@ public:
     unsigned int length() const;
     
     unsigned char* data() const;
+    unsigned int dataLength() const;
     
     unsigned char& operator[](const int index);
     const unsigned char& operator[](const int index) const;

@@ -48,11 +48,11 @@ unsigned char GetChassisCapabCMD::getBridgeAddress(){
 
 void GetChassisCapabCMD::setAllFields(const unsigned char* data, int bridgeSet)
 {
-    fruAddress = data[DATA_START_INDEX+1];
-    sdrAddress = data[DATA_START_INDEX+2];
-    selAddress = data[DATA_START_INDEX+3];
-    sysMgmtAddress = data[DATA_START_INDEX+4];
-    if (bridgeSet) bridgeAddress = data[DATA_START_INDEX+5];
+    fruAddress = data[1];
+    sdrAddress = data[2];
+    selAddress = data[3];
+    sysMgmtAddress = data[4];
+    if (bridgeSet) bridgeAddress = data[5];
 
 }
 
@@ -124,14 +124,14 @@ int ChassisCntrlCMD::process( const unsigned char* request, int reqLength, unsig
     log_file << "Chassis Control Command: " << std::flush;
     response[0] = COMP_CODE_OK;
     
-    if (request[DATA_START_INDEX] == 0x00 || request[DATA_START_INDEX] == 0x05 ) {
+    if (request[0] == 0x00 || request[0] == 0x05 ) {
         log_file << " power off " << std::endl;
         statusCmd_->setPowerState(0);
-    } else if (request[DATA_START_INDEX] == 0x01) {
+    } else if (request[0] == 0x01) {
         log_file << " power on " << std::endl;
         statusCmd_->setLastPowerEvent(0x10);
         statusCmd_->setPowerState(1);
-    } else if (request[DATA_START_INDEX] == 0x02 || request[DATA_START_INDEX] == 0x03 ) {
+    } else if (request[0] == 0x02 || request[0] == 0x03 ) {
         if ( !statusCmd_->getCurrentPower() ) response[0] = CANNOT_EXEC_IN_CUR_STATE;
         else{
             statusCmd_->setPowerState(1);
@@ -162,7 +162,7 @@ ChassisFrontPanelCMD::ChassisFrontPanelCMD(GetChassisStatusCMD* chassisStatusCmd
 
 int ChassisFrontPanelCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
-    if (request[DATA_START_INDEX] == 0x00 || request[DATA_START_INDEX] == 0x01)
+    if (request[0] == 0x00 || request[0] == 0x01)
         statusCmd_->setMiscChassisState(0x02);
     response[0] = COMP_CODE_OK;
     return 1;
@@ -176,7 +176,7 @@ SetChassisCapabCMD::SetChassisCapabCMD(GetChassisCapabCMD* chassisCapabCmd)
 
 int SetChassisCapabCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
-    int bridgeSet = (reqLength - DATA_START_INDEX) - 1 ;
+    int bridgeSet = reqLength;
     capabCmd_->setAllFields(request, bridgeSet );
     response[0] = COMP_CODE_OK;
     return 1;
@@ -189,7 +189,7 @@ SetChassisPowerRestore::SetChassisPowerRestore(GetChassisStatusCMD* chassisStatu
 
 int SetChassisPowerRestore::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
-    statusCmd_->setPowerPolicy(request[DATA_START_INDEX]);
+    statusCmd_->setPowerPolicy(request[0]);
     response[0] = COMP_CODE_OK;
     response[1] = statusCmd_->getPowerPolicy();
     return 1;
