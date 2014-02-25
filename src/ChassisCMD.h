@@ -24,6 +24,12 @@ private:
     
 public:
     GetChassisCapabCMD();
+    unsigned char getCapabFlag();
+    unsigned char getFruAddress();
+    unsigned char getSdrAddress();
+    unsigned char getSelAddress();
+    unsigned char getSysMgmtAddress();
+    unsigned char getBridgeAddress();
     void setAllFields( const unsigned char* data, int bridgeSet);
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
@@ -61,6 +67,9 @@ private:
     
 public:
     GetChassisStatusCMD();
+    unsigned char getCurPowerState();
+    unsigned char getLastPowerEvent();
+    unsigned char getMiscChassisState();
     void setPowerState(int powerState);
     void setPowerPolicy(unsigned char policy);
     unsigned char getPowerPolicy();
@@ -114,6 +123,7 @@ private:
     unsigned char restartCause;
 public:
     GetChassisRestartCause();
+    unsigned char getRestartCause();
     void setRestartCause(unsigned char cause);
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };

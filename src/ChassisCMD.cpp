@@ -27,6 +27,25 @@ int  GetChassisCapabCMD::process( const unsigned char* request, int reqLength, u
     
 }
 
+unsigned char GetChassisCapabCMD::getCapabFlag(){
+    return capabFlag;
+}
+unsigned char GetChassisCapabCMD::getFruAddress(){
+    return fruAddress;
+}
+unsigned char GetChassisCapabCMD::getSdrAddress(){
+    return sdrAddress;
+}
+unsigned char GetChassisCapabCMD::getSelAddress(){
+    return selAddress;
+}
+unsigned char GetChassisCapabCMD::getSysMgmtAddress(){
+    return sysMgmtAddress;
+}
+unsigned char GetChassisCapabCMD::getBridgeAddress(){
+    return bridgeAddress;
+}
+
 void GetChassisCapabCMD::setAllFields(const unsigned char* data, int bridgeSet)
 {
     fruAddress = data[DATA_START_INDEX+1];
@@ -38,6 +57,16 @@ void GetChassisCapabCMD::setAllFields(const unsigned char* data, int bridgeSet)
 }
 
 GetChassisStatusCMD::GetChassisStatusCMD() : curPowerState(0x61), lastPowerEvent(0x00), miscChassisState(0x00) { }
+
+unsigned char GetChassisStatusCMD::getCurPowerState(){
+    return curPowerState;
+}
+unsigned char GetChassisStatusCMD::getLastPowerEvent(){
+    return lastPowerEvent;
+}
+unsigned char GetChassisStatusCMD::getMiscChassisState(){
+    return miscChassisState;
+}
 
 void GetChassisStatusCMD::setLastPowerEvent(unsigned char eventByte)
 {
@@ -173,6 +202,10 @@ int  SetChassisPowerCycle::process( const unsigned char* request, int reqLength,
 }
 
 GetChassisRestartCause::GetChassisRestartCause():restartCause(0x00){ }
+
+unsigned char GetChassisRestartCause::getRestartCause(){
+    return restartCause;
+}
 
 void GetChassisRestartCause::setRestartCause(unsigned char cause){
     restartCause = cause;
