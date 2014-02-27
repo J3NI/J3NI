@@ -80,7 +80,7 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     int respLen = 1;
     
     if  ( commands_.find(message[COMMAND_INDEX]) != commands_.end() ) {
-        respLen = commands_[message[COMMAND_INDEX]]->process(message.message(), message.length(), respData);
+        respLen = commands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
     } else {
         respData[0] = 0xFF;
     }

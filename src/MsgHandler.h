@@ -6,13 +6,10 @@
 class I_Command;
 class IpmiMessage;
 
-
-
 class MsgHandler {
-public:
-    typedef std::map<unsigned char, I_Command*> CommandMap;
     
 private:
+    typedef std::map<unsigned char, I_Command*> CommandMap;
     static CommandMap commands_;
     
 public:
