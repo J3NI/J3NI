@@ -18,9 +18,11 @@ void MsgHandler::initCMD() {
     GetChassisCapabCMD* chassisCapab = new GetChassisCapabCMD();
     GetChassisStatusCMD* chassisStatus = new GetChassisStatusCMD();
     GetChassisRestartCause* chassisRestartCause = new GetChassisRestartCause();
+    GetChassisPOHCounter* chassisPOH = new GetChassisPOHCounter();
+    
     commands_[0x00] = chassisCapab;
     commands_[0x01] = chassisStatus;
-    commands_[0x02] = new ChassisCntrlCMD(chassisStatus, chassisRestartCause);
+    commands_[0x02] = new ChassisCntrlCMD(chassisStatus, chassisRestartCause, chassisPOH);
     commands_[0x03] = new ChassisResetCMD();
     commands_[0x04] = new ChassisIdentifyCMD();
     commands_[0x0A] = new ChassisFrontPanelCMD(chassisStatus);
@@ -32,7 +34,7 @@ void MsgHandler::initCMD() {
     commands_[0x08] = new SetChassisBootOpt();
     commands_[0x09] = new GetChassisBootOpt();
          */
-    commands_[0x0F] = new GetChassisPOHCounter();
+    commands_[0x0F] = chassisPOH;
 
     
     // Channel Commands

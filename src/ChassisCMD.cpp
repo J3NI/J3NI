@@ -113,10 +113,11 @@ int  GetChassisStatusCMD::process( const unsigned char* request, int reqLength, 
         return 4;
 }
 
-ChassisCntrlCMD::ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd, GetChassisRestartCause* restartCause)
+ChassisCntrlCMD::ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd, GetChassisRestartCause* restartCause, GetChassisPOHCounter* pohCmd)
 {
     statusCmd_ = chassisStatusCmd;
     restartCause_ = restartCause;
+    poh_ = pohCmd;
 }
 
 
@@ -132,12 +133,14 @@ int ChassisCntrlCMD::process( const unsigned char* request, int reqLength, unsig
         log_file << " power on " << std::endl;
         statusCmd_->setLastPowerEvent(0x10);
         statusCmd_->setPowerState(1);
+        poh_->resetStartTime();
     } else if (request[DATA_START_INDEX] == 0x02 || request[DATA_START_INDEX] == 0x03 ) {
         if ( !statusCmd_->getCurrentPower() ) response[0] = CANNOT_EXEC_IN_CUR_STATE;
         else{
             statusCmd_->setPowerState(1);
             statusCmd_->setLastPowerEvent(0x00);
             restartCause_->setRestartCause(0x01);
+            poh_->resetStartTime();
         }
     }
     return 1;
@@ -233,4 +236,9 @@ int  GetChassisPOHCounter::process( const unsigned char* request, int reqLength,
     response[0] = COMP_CODE_OK;
     response[1] = difftime(time(0), startTime) / 3600;
     return 2;
+}
+
+void  GetChassisPOHCounter::resetStartTime()
+{
+    startTime = time(0);
 }

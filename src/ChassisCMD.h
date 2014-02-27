@@ -128,21 +128,24 @@ public:
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
 
-class  ChassisCntrlCMD:public I_Command{
-private:
-    GetChassisStatusCMD* statusCmd_;
-    GetChassisRestartCause* restartCause_;
-    
-public:
-    ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd, GetChassisRestartCause* restartCause);
-    int process( const unsigned char* request, int reqLength, unsigned char* response );
-};
-
 class  GetChassisPOHCounter:public I_Command{
 private:
     time_t startTime;
 public:
     GetChassisPOHCounter();
+    void resetStartTime();
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
+
+class  ChassisCntrlCMD:public I_Command{
+private:
+    GetChassisStatusCMD* statusCmd_;
+    GetChassisRestartCause* restartCause_;
+    GetChassisPOHCounter* poh_;
+public:
+    ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd, GetChassisRestartCause* restartCause, GetChassisPOHCounter* pohCmd);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+
 #endif
