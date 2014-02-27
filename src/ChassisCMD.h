@@ -138,4 +138,11 @@ public:
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
 
+class  GetChassisPOHCounter:public I_Command{
+private:
+    time_t startTime;
+public:
+    GetChassisPOHCounter();
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
 #endif

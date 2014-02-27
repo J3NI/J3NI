@@ -31,8 +31,9 @@ void MsgHandler::initCMD() {
     /*
     commands_[0x08] = new SetChassisBootOpt();
     commands_[0x09] = new GetChassisBootOpt();
+         */
     commands_[0x0F] = new GetChassisPOHCounter();
-    */
+
     
     // Channel Commands
     commands_[0x38] = new GetChannelAuthCMD();

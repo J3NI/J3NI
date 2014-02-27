@@ -2,6 +2,7 @@
 #include <ChassisCMD.h>
 #include <IpmiCommandDefines.h>
 #include <fstream>
+#include <time.h>
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
@@ -217,4 +218,19 @@ int  GetChassisRestartCause::process( const unsigned char* request, int reqLengt
     response[1] = restartCause;
     response[2] = 0x01;
     return 3;
+}
+
+GetChassisPOHCounter::GetChassisPOHCounter()
+{
+    struct tm initialStartTime;
+    initialStartTime.tm_hour = 0; initialStartTime.tm_min = 0; initialStartTime.tm_sec = 0;
+    initialStartTime.tm_year = 2014; initialStartTime.tm_mon = 0; initialStartTime.tm_mday = 1;
+    startTime = mktime(&initialStartTime);
+}
+
+int  GetChassisPOHCounter::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
+    response[0] = COMP_CODE_OK;
+    response[1] = difftime(time(0), startTime) / 3600;
+    return 2;
 }
