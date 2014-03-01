@@ -10,6 +10,10 @@
 
 namespace IpmiCommandDefines
 {
+    const unsigned int CHALLENGE_STRING[16] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+    const unsigned int TEMP_SESSION_ID[4] = {0x01, 0xff, 0x10, 0x53};
+    
     const unsigned int PING_LENGTH = 12;    
     const unsigned int PONG_LENGTH = 27;
     
@@ -44,6 +48,9 @@ namespace IpmiCommandDefines
     const unsigned int COMP_CODE_OK             = 0x00;
     const unsigned int CANNOT_EXEC_IN_CUR_STATE = 0xD5;
     const unsigned int CANNOT_EXEC_DISABLED     = 0xD6;
+    const unsigned int INVALID_SESSION_ID       = 0x85;
+    const unsigned int PRIV_LVL_UNAVAILABLE     = 0x80;
+    const unsigned int UNKNOWN_ERROR            = 0xFF;
     
     const unsigned int MAX_DATA_SIZE            = 42;
 }

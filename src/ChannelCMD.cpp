@@ -10,9 +10,13 @@ int GetChannelAuthCMD::process(const unsigned char* request, int reqLength, unsi
     log_file << "In GetChannelAuthCMD" << std::endl;
     
     response[0] = COMP_CODE_OK;
-    response[1] = 0x01; //Channel Number
+    response[1] = channelNum; //Channel Number
     response[2] = 0x01; //Authentication supported = None
     response[3] = 0x1b;
     
     return 9;
+}
+
+unsigned char GetChannelAuthCMD::getChannelNum(){
+    return channelNum;
 }

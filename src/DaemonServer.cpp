@@ -88,7 +88,7 @@ void DaemonServer::startDaemon()
     // Run in root directory
     chdir("/");
     
-    log_file << "Daemon started successfully\n";
+    log_file << "Daemon started successfully\n" << std::endl;
 }
 
 

@@ -38,13 +38,16 @@ void MsgHandler::initCMD() {
 
     
     // Channel Commands
-    commands_[0x38] = new GetChannelAuthCMD();
+    GetChannelAuthCMD* channelAuthCMD = new GetChannelAuthCMD();
+    commands_[0x38] = channelAuthCMD;
     
     //Session Commands
+    SetSessionPrivCMD* sessionPrivCMD = new SetSessionPrivCMD();
     commands_[0x39] = new GetSessionChalCMD();
-    commands_[0x3a] = new ActSessionCMD();
-    commands_[0x3b] = new SetSessionPrivCMD();
+    commands_[0x3a] = new ActSessionCMD(sessionPrivCMD);
+    commands_[0x3b] = sessionPrivCMD;
     commands_[0x3c] = new CloseSessionCMD();
+    commands_[0x3d] = new GetSessionInfo(sessionPrivCMD, channelAuthCMD);
 }
 
 void MsgHandler::clearCMD()
@@ -80,9 +83,10 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     int respLen = 1;
     
     if  ( commands_.find(message[COMMAND_INDEX]) != commands_.end() ) {
-        respLen = commands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+        if (message[COMMAND_INDEX] == 0x3a) respLen = commands_[0x3a]->process(message.message(), message.length(), respData);
+        else respLen = commands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
     } else {
-        respData[0] = 0xFF;
+        respData[0] = UNKNOWN_ERROR;
     }
     message.serialize(respData, respLen, response);
 }

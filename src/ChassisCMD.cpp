@@ -228,15 +228,19 @@ GetChassisPOHCounter::GetChassisPOHCounter()
 {
     struct tm initialStartTime;
     initialStartTime.tm_hour = 0; initialStartTime.tm_min = 0; initialStartTime.tm_sec = 0;
-    initialStartTime.tm_year = 2014; initialStartTime.tm_mon = 0; initialStartTime.tm_mday = 1;
+    initialStartTime.tm_year = 114; initialStartTime.tm_mon = 0; initialStartTime.tm_mday = 1;
     startTime = mktime(&initialStartTime);
+    
 }
 
 int  GetChassisPOHCounter::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
     response[0] = COMP_CODE_OK;
-    response[1] = difftime(time(0), startTime) / 3600;
-    return 2;
+    response[1] = 0x3c; // 60 minutes per count
+    int countNum = difftime( time(0), startTime) / 3600;
+    for (int i = 0; i< 4; i++)
+        response[2+i] = (countNum >> ((i)*8)) & 0xFF;
+    return 6;
 }
 
 void  GetChassisPOHCounter::resetStartTime()
