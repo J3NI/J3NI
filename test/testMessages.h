@@ -1,5 +1,5 @@
-#ifndef __TEST_H
-#define __TEST_H
+#ifndef __TEST_MESSAGES_H
+#define __TEST_MESSAGES_H
 
 #include "cxxtest/TestSuite.h"
 #include <iostream>
@@ -7,12 +7,9 @@
 
 std::ofstream log_file("J3NI_test_log.log");
 
-class J3NITestSuite : public CxxTest::TestSuite 
+class TestMessages : public CxxTest::TestSuite
 {
     public:
-    void setUp() {
-        MsgHandler::initCMD();
-    }
 
     void testIpmiMessageValidCreation(void) {
 	TS_TRACE("Executing testIpmiMessageValidCreation");
@@ -39,18 +36,6 @@ class J3NITestSuite : public CxxTest::TestSuite
         TS_ASSERT_SAME_DATA(testMsg.message(), msg, 27);
         TS_ASSERT_EQUALS(testMsg.message()[9], req.message()[9]);
     }
-
-   void testChassis(void){
-	TS_TRACE("Executing testChassis");
-	IpmiMessage req(IpmiCommandDefines::GET_CHASSIS_STATUS,21);
-	int powerOn = 0x61;
-	int lastpowerEvent = 0x00;
-	int chassisState = 0x00;
-	IpmiMessage testChassisStatus;
-	MsgHandler::processRequest(req, testChassisStatus);
-	TS_ASSERT(req.message()[19] == 0x01);
-    }
-   
     
 };
 
