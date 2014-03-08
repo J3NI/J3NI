@@ -2,6 +2,7 @@
 #define CHASSISCMD_H
 
 #include <I_Command.h>
+#include <time.h>
 
 class  GetChassisCapabCMD:public I_Command{
 private:

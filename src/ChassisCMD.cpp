@@ -2,7 +2,6 @@
 #include <ChassisCMD.h>
 #include <IpmiCommandDefines.h>
 #include <fstream>
-#include <time.h>
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
