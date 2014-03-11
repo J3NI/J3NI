@@ -33,24 +33,21 @@ class TestChassisSuite : public CxxTest::TestSuite
     //---------------------------------------------------
     //---------------- HELPER FUNCTIONS -----------------
     
-    unsigned char getReferenceFrontPanel(){
-        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x01;
+    unsigned char getReference(unsigned char cmd, int byte){
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = cmd;
         IpmiMessage request0(blank_request, 21);
         IpmiMessage testResponse;
         MsgHandler::processRequest(request0, testResponse);
-        return testResponse.data()[4];
+        return testResponse.data()[byte];
     }
     
-    void verifySessionCMD(unsigned char* expectedReturn, int lengthToCheck){
-        TS_TRACE("\tChecking power on status, last event, etc.");
-        
+    void verifyChassisStatORCapabCMD(unsigned char cmd, unsigned char* expectedReturn, int lengthToCheck){
         IpmiMessage testResponse;
-        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x01;
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = cmd;
         IpmiMessage request(blank_request, 21);
         MsgHandler::processRequest(request, testResponse);
         
         TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);
-        TS_ASSERT((testResponse.length() == 25) || (testResponse.length() == 26));
         for (int i = 1; i <= lengthToCheck; i++){
             TS_ASSERT_EQUALS(testResponse.data()[i], expectedReturn[i-1]);
         }
@@ -96,7 +93,7 @@ class TestChassisSuite : public CxxTest::TestSuite
         
         TS_TRACE("\tChecking power on status, last event, etc.");
         unsigned char expectedReturn[3] = {0x61, 0x00, 0x00};
-        verifySessionCMD(expectedReturn, 3);
+        verifyChassisStatORCapabCMD(0x01, expectedReturn, 3);
         
         TS_TRACE("\tChecking reset cause");
         verifyResetCauseCMD(0x01);
@@ -131,6 +128,26 @@ class TestChassisSuite : public CxxTest::TestSuite
             TS_WARN("Status CMD doesn't support Front Panel Status");
     }
     
+    void verifySetChassisCMD(unsigned char* reqData, int reqLength){
+        unsigned char referenceByte = getReference(0x00, 1);
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x05;
+        for (int i = 0; i < reqLength; i++) blank_request[IpmiCommandDefines::DATA_START_INDEX+i] = reqData[i];
+        IpmiMessage request(blank_request, 21+reqLength);
+        IpmiMessage testResponse;
+        if (reqLength < 5) {
+            reqLength = 5;
+            for (int i = 1; i <=5; i++)
+                reqData[i] = getReference(0x00, i+1);
+        }
+        else if (reqLength > 6) reqLength = 6;
+        MsgHandler::processRequest(request, testResponse);
+        
+        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);
+        reqData[0] = referenceByte;
+        TS_WARN("Chassis Capabilities Flag is a read only value in this implementation");
+        verifyChassisStatORCapabCMD(0x00, reqData, reqLength);
+    }
+    
     //---------------------------------------------------
     //---------- TEST Get Chassis Capabilities ---------- 
     
@@ -152,7 +169,7 @@ class TestChassisSuite : public CxxTest::TestSuite
     void testGetChassisStatus(void) {
         TS_TRACE("Testing Get Chassis Status CMD -- default return expected");
         unsigned char expectedReturn[3] = {0x61, 0x00, 0x00};
-        verifySessionCMD(expectedReturn, 3);
+        verifyChassisStatORCapabCMD(0x01, expectedReturn, 3);
     }
     
     //---------------------------------------------------
@@ -170,7 +187,7 @@ class TestChassisSuite : public CxxTest::TestSuite
         
         TS_TRACE("\tChecking power off status");
         unsigned char expectedReturn[1] = {0x60};
-        verifySessionCMD(expectedReturn, 1);
+        verifyChassisStatORCapabCMD(0x01, expectedReturn, 1);
     }
     
     void testChassisControl_InvalidCycle(void) {
@@ -208,7 +225,7 @@ class TestChassisSuite : public CxxTest::TestSuite
         MsgHandler::processRequest(request, testResponse);
         TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], IpmiCommandDefines::COMP_CODE_OK);
         unsigned char expectedReturn[3] = {0x61, 0x10, 0x00};
-        verifySessionCMD(expectedReturn, 3);
+        verifyChassisStatORCapabCMD(0x01, expectedReturn, 3);
     }
     
     void testChassisControl_Cycle(void) {
@@ -285,62 +302,79 @@ class TestChassisSuite : public CxxTest::TestSuite
     
     void testChassisFrontPanel_disableStandby(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable standby request");
-        verifyFrontPanelCMD(0x08, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x08, getReference(0x01, 4));
     }
     
     void testChassisFrontPanel_disableDiagnostic(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable diagnostic request");
-        verifyFrontPanelCMD(0x04, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x04, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableDiagnosticAndStandby(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable diagnostic & standby request");
-        verifyFrontPanelCMD(0x0C, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x0C, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableReset(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable reset request");
-        verifyFrontPanelCMD(0x02, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x02, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableDiagnosticAndReset(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable diagnostic & reset request");
-        verifyFrontPanelCMD(0x06, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x06, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableResetAndStandby(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable reset & standby request");
-        verifyFrontPanelCMD(0x0A, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x0A, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableDiagnosticResetStandby(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable diagnostic, reset & standby request");
-        verifyFrontPanelCMD(0x0D, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x0D, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disablePowerOff(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable power off request");
-        verifyFrontPanelCMD(0x01, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x01, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableStandbyAndPowerOff(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable standby & power off request");
-        verifyFrontPanelCMD(0x09, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x09, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableDiagnosticAndPowerOff(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable diagnostic & power off request");
-        verifyFrontPanelCMD(0x05, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x05, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableResetAndPowerOff(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable reset & power off request");
-        verifyFrontPanelCMD(0x05, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x05, getReference(0x01, 4));
     }
     void testChassisFrontPanel_disableAll(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with disable all buttons request");
-        verifyFrontPanelCMD(0x0F, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x0F, getReference(0x01, 4));
     }
     void testChassisFrontPanel_enableAll(void){
         TS_TRACE("Testing Set Front Panel Enables CMD with enable all buttons request");
-        verifyFrontPanelCMD(0x00, getReferenceFrontPanel());
+        verifyFrontPanelCMD(0x00, getReference(0x01, 4));
     }
     
     //---------------------------------------------------
     //---------- TEST Set Chassis Capabilities ----------
+    void testSetChassisCapabilities_NoBridge(void){
+        unsigned char reqData[5] = {0x03, 0xFA, 0xEB, 0xDC, 0x23 };
+        verifySetChassisCMD(reqData, 5);
+    }
     
+    void testSetChassisCapabilities_Full(void){
+        unsigned char reqData[6] = {0x03, 0xFA, 0xEB, 0xDC, 0x23, 0x78 };
+        verifySetChassisCMD(reqData, 6);
+    }
     
+    void testSetChassisCapabilities_TooShort(void){
+        unsigned char reqData[3] = {0x03, 0xFA, 0xEB };
+        verifySetChassisCMD(reqData, 3);
+    }
+    
+    void testSetChassisCapabilities_TooLong(void){
+        unsigned char reqData[8] = {0x03, 0xFA, 0xEB, 0xDC, 0x23, 0x78, 0x20, 0x04 };
+        verifySetChassisCMD(reqData, 8);
+    }
     //---------------------------------------------------
     //------ TEST Set Chassis Power Restore Policy ------
     

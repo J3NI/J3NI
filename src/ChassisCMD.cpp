@@ -2,6 +2,7 @@
 #include <ChassisCMD.h>
 #include <IpmiCommandDefines.h>
 #include <fstream>
+#include <stdexcept> 
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
@@ -48,11 +49,15 @@ unsigned char GetChassisCapabCMD::getBridgeAddress(){
 
 void GetChassisCapabCMD::setAllFields(const unsigned char* data, int bridgeSet)
 {
-    fruAddress = data[1];
-    sdrAddress = data[2];
-    selAddress = data[3];
-    sysMgmtAddress = data[4];
-    if (bridgeSet) bridgeAddress = data[5];
+    if( bridgeSet == 5 || bridgeSet == 6){
+        fruAddress = data[1];
+        sdrAddress = data[2];
+        selAddress = data[3];
+        sysMgmtAddress = data[4];
+        if (bridgeSet == 6) bridgeAddress = data[5];
+    } else {
+        log_file << "Recieved Set Chassis Capabilities CMD request provided less that 5 data bytes"<<std::endl;
+    }
 
 }
 
@@ -180,8 +185,7 @@ SetChassisCapabCMD::SetChassisCapabCMD(GetChassisCapabCMD* chassisCapabCmd)
 
 int SetChassisCapabCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
-    int bridgeSet = reqLength;
-    capabCmd_->setAllFields(request, bridgeSet );
+    capabCmd_->setAllFields(request, reqLength );
     response[0] = COMP_CODE_OK;
     return 1;
 }
