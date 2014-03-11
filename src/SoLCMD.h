@@ -60,7 +60,7 @@ private:
     //SoL Payload Channel (OPTIONAL)
     unsigned char SoLChannel; //Default = 0x00
     //SoL Payload Port Number (Read-only or Read/Write)
-    unsigned char SoLPort; //Default = 0x00
+    unsigned short int SoLPort; //Default = 0x0000
     
     public:
     GetSoLConfigCMD();
@@ -78,7 +78,7 @@ private:
     unsigned char getSoLBitRate_NV();
     unsigned char getSoLBitRate_V();
     unsigned char getSoLChannel();
-    unsigned char getSoLPort();
+    unsigned short int getSoLPort();
     void setParameterRevision();
     void setSetInProgress(unsigned char progress);
     void setSoLEnable(unsigned char enable);
@@ -90,7 +90,7 @@ private:
     void setSoLBitRate_NV(unsigned char rate); 
     void setSoLBitRate_V(unsigned char rate);
     void setSoLChannel(unsigned char channel);
-    void setSoLPort(unsigned char port);
+    void setSoLPort(unsigned short int port);
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
 
