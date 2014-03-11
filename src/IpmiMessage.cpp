@@ -19,12 +19,12 @@ using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
 
 IpmiMessage::IpmiMessage()
-:   msgLength_(0), message_(NULL)
+:   msgLength_(0), message_(NULL), dataLength_(0), data_(NULL)
 {
 }
 
 IpmiMessage::IpmiMessage(const unsigned char* msg, unsigned int msgSize)
-:   msgLength_(0), message_(NULL)
+:   msgLength_(0), message_(NULL), dataLength_(0), data_(NULL)
 {
     setMessage(msg, msgSize);
 }
@@ -49,6 +49,14 @@ bool IpmiMessage::setMessage(const unsigned char* msg, unsigned int msgLength)
     {
         message_[i] = msg[i];
     }
+    
+    dataLength_ = msgLength_ - (DATA_START_INDEX + 1);
+    data_ = new unsigned char[dataLength_];
+    for (int i = 0; i < dataLength_; i++)
+    {
+        data_[i] = message_[i + DATA_START_INDEX];
+    }
+    
     return true;
 }
 
@@ -98,7 +106,7 @@ bool IpmiMessage::serialize(const unsigned char* data, unsigned int dataSize,
 }
 
 
-unsigned char* IpmiMessage::message() const
+const unsigned char* IpmiMessage::message() const
 {
     return message_;
 }
@@ -108,20 +116,14 @@ unsigned int IpmiMessage::length() const
     return msgLength_;
 }
 
-unsigned char* IpmiMessage::data() const
+const unsigned char* IpmiMessage::data() const
 {
-    unsigned int dataSize = dataLength();
-    unsigned char * dataBytes = new unsigned char[dataSize];
-    for (int i = 0; i < dataSize; i++)
-    {
-        dataBytes[i] = message_[i+DATA_START_INDEX];
-    }
-    return dataBytes;
+    return data_;
 }
 
 unsigned int IpmiMessage::dataLength() const
 {
-    return msgLength_ - (DATA_START_INDEX + 1);
+    return dataLength_;
 }
 
 
@@ -143,6 +145,13 @@ void IpmiMessage::clearMessage()
     {
         delete [] message_;
         message_ = NULL;
+    }
+    
+    dataLength_ = 0;
+    if(data_ != NULL)
+    {
+        delete [] data_;
+        data_ = NULL;
     }
 }
 

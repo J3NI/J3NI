@@ -15,6 +15,9 @@ private:
     int msgLength_;
     unsigned char* message_;
     
+    int dataLength_;
+    unsigned char* data_;
+    
 public:
     IpmiMessage();
     IpmiMessage(const unsigned char* msg, unsigned int msgSize);
@@ -26,10 +29,10 @@ public:
     bool serialize(const unsigned char* data, unsigned int dataSize,
                    IpmiMessage& responseMsg) const;
 
-    unsigned char* message() const;
+    const unsigned char* message() const;
     unsigned int length() const;
     
-    unsigned char* data() const;
+    const unsigned char* data() const;
     unsigned int dataLength() const;
     
     unsigned char& operator[](const int index);

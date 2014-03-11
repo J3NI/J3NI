@@ -64,6 +64,7 @@ void MsgHandler::clearCMD()
     {
         delete it->second;
     }
+    commands_.clear();
 }
 
 bool MsgHandler::isPing(const IpmiMessage& message)
@@ -90,8 +91,10 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     int respLen = 1;
     
     if  ( commands_.find(message[COMMAND_INDEX]) != commands_.end() ) {
-        if (message[COMMAND_INDEX] == 0x3a) respLen = commands_[0x3a]->process(message.message(), message.length(), respData);
-        else respLen = commands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+        if (message[COMMAND_INDEX] == 0x3a)
+            respLen = commands_[0x3a]->process(message.message(), message.length(), respData);
+        else
+            respLen = commands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
     } else {
         respData[0] = UNKNOWN_ERROR;
     }
