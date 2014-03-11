@@ -5,6 +5,7 @@
 #include <ChassisCMD.h>
 #include <ChannelCMD.h>
 #include <SessionCMD.h>
+#include <SoLCMD.h>
 
 #include <fstream>
 
@@ -48,6 +49,12 @@ void MsgHandler::initCMD() {
     commands_[0x3b] = sessionPrivCMD;
     commands_[0x3c] = new CloseSessionCMD();
     commands_[0x3d] = new GetSessionInfo(sessionPrivCMD, channelAuthCMD);
+
+    //SoL Commands
+    GetSoLConfigCMD * solConfig = new GetSoLConfigCMD();
+    commands_[0x20] = new SoLActivatingCMD();
+    commands_[0x21] = new SetSoLConfigCMD(solConfig);
+    commands_[0x22] = solConfig;
 }
 
 void MsgHandler::clearCMD()
