@@ -90,7 +90,7 @@ private:
     void setSoLBitRate_NV(unsigned char rate); 
     void setSoLBitRate_V(unsigned char rate);
     void setSoLChannel(unsigned char channel);
-    void setSoLPort(unsigned short int port);
+    void setSoLPort(unsigned char port,unsigned char port2);
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
 

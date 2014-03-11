@@ -56,22 +56,6 @@ int GetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsig
 	default:
 	    return 1; //Error Should be unexpected data bytes
     }
-    
-    //Check if there has been a SET yet
-/*    if(parameterRevision == 0)
-	return 2;*/
-   /* response[2] = setInProgress;
-    response[3] = SoLEnable;
-    response[4] = SoLAuth;
-    response[5] = charAccumulateIntervals;
-    response[6] = charSendThresh;	//Totally sends a response for EACH parameter one at a time
-    response[7] = SoLRetryCount;
-    response[8] = SoLRetryInterval;
-    response[9] = SoLBitRate_NV;
-    response[10] = SoLBitRate_V;
-    response[11] = SoLChannel;
-    response[12] = SoLPort; */
-   // return 13;
 }
 
 unsigned char GetSoLConfigCMD::getParameterRevision()
@@ -188,9 +172,10 @@ void GetSoLConfigCMD::setSoLChannel(unsigned char channel)
 {
     SoLChannel = channel;
 }
-void GetSoLConfigCMD::setSoLPort(unsigned short int port)
+void GetSoLConfigCMD::setSoLPort(unsigned char port,unsigned char port2)
 {
-    SoLPort = port;
+    short int portnum = (port<<2) | port2;
+    SoLPort = portnum;
 }
 
 SetSoLConfigCMD::SetSoLConfigCMD(GetSoLConfigCMD * SoLConfigCmd)
@@ -202,9 +187,52 @@ int SetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsig
 {
     log_file << "Set SoL Configuration Parameters Command" << std::endl;
     solConfigCmd_->setSoLChannel(request[0]&0xF);
-    solConfigCmd_->setSetInProgress(request[2]);
-
-    response[0] = COMP_CODE_OK; //(0x80 = parameter not supported, 0x81 attempt to set inprogress when not in complete state, 0x82 attempt to write read-only parameter, 0x83 attempt to read a write-only parameter)
+    switch(request[1])
+    {
+	case 0: 
+	    solConfigCmd_->setSetInProgress(request[2]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	case 1:
+	    solConfigCmd_->setSoLEnable(request[2]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	case 2:
+	    solConfigCmd_->setSoLAuth(request[2]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	case 3:
+	    solConfigCmd_->setCharAccumulateIntervals(request[2]);
+	    solConfigCmd_->setCharSendThresh(request[3]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	case 4:
+	    solConfigCmd_->setSoLRetryCount(request[2]);
+	    solConfigCmd_->setSoLRetryInterval(request[3]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	case 5:
+	    solConfigCmd_->setSoLBitRate_NV(request[2]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	case 6:
+	    solConfigCmd_->setSoLBitRate_V(request[2]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	case 7:
+	    solConfigCmd_->setSoLChannel(request[2]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	case 8:
+	    solConfigCmd_->setSoLPort(request[2],request[3]);
+	    response[0] = COMP_CODE_OK;
+	    break;
+	default:
+	    response[0] = 0x80;
+	    if(solConfigCmd_->getSetInProgress() != 0x00)
+		response[0] = 0x81;
+	//(0x80 = parameter not supported, 0x81 attempt to set inprogress when not in complete state, 0x82 attempt to write read-only parameter, 0x83 attempt to read a write-only parameter)
+    }
     return 1;
 }
 
