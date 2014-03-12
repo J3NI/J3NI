@@ -51,7 +51,6 @@ namespace IpmiCommandDefines
     const unsigned int PRIV_LVL_UNAVAILABLE     = 0x80;
     const unsigned int UNKNOWN_ERROR            = 0xFF;
     
-    const unsigned int MIN_DATA_SIZE            = 23;
     const unsigned int MAX_DATA_SIZE            = 42;
 }
 

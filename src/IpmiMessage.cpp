@@ -41,7 +41,7 @@ IpmiMessage::~IpmiMessage()
 
 bool IpmiMessage::setMessage(const unsigned char* msg, unsigned int msgLength)
 {
-    if(msgLength < MIN_DATA_SIZE && msgLength != PING_LENGTH)
+    if(msgLength < MESSAGE_HEADER_LENGTH && msgLength != PING_LENGTH)
     {
         return false;
     }
@@ -53,8 +53,8 @@ bool IpmiMessage::setMessage(const unsigned char* msg, unsigned int msgLength)
     {
         message_[i] = msg[i];
     }
-    
-    if(msgLength_ < MIN_DATA_SIZE)
+  
+    if(msgLength_ < MESSAGE_HEADER_LENGTH)
     {
         return true;
     }
@@ -222,8 +222,17 @@ void IpmiMessage::updateSessionInfo()
 
 bool IpmiMessage::validSequenceNumber() const
 {
-    return ((msgSeqNumber_ >= inboundSequenceNumber_ - 16) &&
-            (msgSeqNumber_ <= inboundSequenceNumber_ + 15));
+    uint32_t minSeqNum = inboundSequenceNumber_ - 16;
+    uint32_t maxSeqNum = inboundSequenceNumber_ + 15;
+    if((minSeqNum > inboundSequenceNumber_) ||
+       (maxSeqNum < inboundSequenceNumber_))
+    {   
+        return ((msgSeqNumber_ <= maxSeqNum) ||
+                (msgSeqNumber_ >= minSeqNum));
+    }
+    
+    return ((msgSeqNumber_ >= minSeqNum) &&
+            (msgSeqNumber_ <= maxSeqNum));
 }
 
 bool IpmiMessage::isSessionlessCommand() const
