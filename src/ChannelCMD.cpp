@@ -32,12 +32,12 @@ int GetChannelAuthCMD::process(const unsigned char* request, int reqLength, unsi
 unsigned char GetChannelAuthCMD::getChannelNum(){
     return channelNum;
 }
-/*
-int GetChannelCipherSuites::process(const unsigned char* request, int reqLength, unsigned char* response)
+
+int GetChannelCipherSuitesCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
    response[0] = COMP_CODE_OK;	// Completion code
    if(request[0]==0x0E) 	// return channel num for channel cmd was received on
-	response[1] = channelNum;
+	response[1] = GetChanAuthCMD->getChannelNum();
    else			// else return channel num received
    	response[1] = request[0];
 
@@ -50,48 +50,30 @@ int GetChannelCipherSuites::process(const unsigned char* request, int reqLength,
    return 18;
 }
 
-GetChannelAccessCMD::GetChannelAccessCMD(SetChannelAccessCMD* cPrivLvl): chanAccCMD(cPrivLvl);
-
-int GetChannelAccessCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
-{
-   response[0] = COMP_CODE_OK;
-   response[1] = 0x3A;	// 0011 1010
-			// [7:6] 00b	reserved
-			// [5]	 1	alerting disabled
-			// [4]	 1	per-message auth disabled
-			// [3]	 1	user-level auth disabled
-			// [2:0] 0x2	access mode is always available
-   response[2] = cPrivLvl;	// 0000 cPrivLvl
-			// [7:4] 0000	reserved
-			// [3:0] 	Channel Privilege Level Limit
-   return 3;
-}
 
 int GetChannelInfoCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
    response[0] = COMP_CODE_OK;	// Completion code
    if(request[0]==0x0E) 	// return channel num for channel cmd was received on
-	response[1] = channelNum;
+	response[1] = GetChanAuthCMD->getChannelNum();
    else			// else return channel num received
    	response[1] = request[0];  
    // Our implementation only uses one channel so no need to check other channels
-   response[2] = 0x04	// 
-			// Channel Medium Type **********
-   response[3] = 0x01	//
-			// Channel Protocol Type ********
-   unsigned char sesSupportByte;
-   response[4] = 0x81	//
-			// Session support **************
-			// Num of sessions activated
-   response[5:7] = 0xF21B00 //IPMI Enterprise Number
-   response[9:10] = 0xFFFF // Auxiliary Chan Info *************
+   response[2] = 0x04;	// Channel Medium Type: 802.3 LAN
+   response[3] = 0x01;	// Channel Protocol Type: IPMB-1.0, serial/modem Basic Mode, and LAN
+   response[4] = 0x81;	// Session support: multi-session, # sessions activated on channel = 1
+   response[5] = 0xF2; 	//IPMI Enterprise Number = 0xF21B00
+   response[6] = 0x1B;
+   response[7] = 0x00;
+   response[9] = 0xFF; // Auxiliary Chan Info = 0xFFFF (no interrupt/unspecified)
+   response[10] = 0xFF;
    return 10; 
 }
 
 int SetChannelAccessCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
    unsigned char newLvl = request[2] & 0x0F;
-   if(SetChanPrivLvl(newLvl)==1 && (request[2]&0xC0)!=0x00)
+   if(setChanPrivLvl(newLvl)==1 && (request[2]&0xC0)!=0x00)
 	response[0] = COMP_CODE_OK;
    else
 	response[0] = 0x82; // sets not supported on selected channel
@@ -105,11 +87,31 @@ int SetChannelAccessCMD::process(const unsigned char* request, int reqLength, un
    return 1; 
 }
 
-int SetChannelAccessCMD::SetChanPrivLvl( const unsigned char newLvl )
+int SetChannelAccessCMD::setChanPrivLvl( const unsigned char newLvl )
 {
     if ((newLvl >= 1) && (newLvl <= 4)) {
         chanPrivLvl = newLvl;
         return 1;
     }
     return 0; 
-}*/
+}
+
+unsigned char SetChannelAccessCMD::getChanPrivLvl()
+{
+   return chanPrivLvl;
+}
+
+int GetChannelAccessCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
+{
+   response[0] = COMP_CODE_OK;
+   response[1] = 0x3A;	// 0011 1010
+			// [7:6] 00b	reserved
+			// [5]	 1	alerting disabled
+			// [4]	 1	per-message auth disabled
+			// [3]	 1	user-level auth disabled
+			// [2:0] 0x2	access mode is always available
+   response[2] = chanAccCMD->getChanPrivLvl();	// Priv Lvl
+			// [7:4] 0000	reserved
+			// [3:0] 	Channel Privilege Level Limit
+   return 3;
+}
