@@ -6,6 +6,7 @@
 #include <ChannelCMD.h>
 #include <SessionCMD.h>
 #include <SoLCMD.h>
+#include <LANCMD.h>
 
 #include <fstream>
 
@@ -55,6 +56,11 @@ void MsgHandler::initCMD() {
     commands_[0x20] = new SoLActivatingCMD();
     commands_[0x21] = new SetSoLConfigCMD(solConfig);
     commands_[0x22] = solConfig;
+    
+    //LAN Commands
+    GetLANConfigCMD * LANConfig = new GetLANConfigCMD();
+    commands_[0x01] = new SetLANConfigCMD(LANConfig);
+    commands_[0x02] = LANConfig;
 }
 
 void MsgHandler::clearCMD()
