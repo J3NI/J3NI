@@ -42,7 +42,11 @@ void MsgHandler::initCMD() {
     // Channel Commands
     GetChannelAuthCMD* channelAuthCMD = new GetChannelAuthCMD();
     commands_[0x38] = channelAuthCMD;
-    
+    //commands_[0x54] = new GetChannelCipherSuitesCMD();
+    //commands_[0x41] = new GetChannelAccessCMD();
+    //commands_[0x42] = new GetChannelInfoCMD();
+    //commands_[0x40] = new SetChannelAccessCMD();
+
     //Session Commands
     SetSessionPrivCMD* sessionPrivCMD = new SetSessionPrivCMD();
     commands_[0x39] = new GetSessionChalCMD();
