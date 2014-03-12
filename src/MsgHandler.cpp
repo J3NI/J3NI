@@ -88,6 +88,8 @@ void MsgHandler::processRequest(const IpmiMessage& message,
                                 IpmiMessage& response)
 {
     unsigned char * respData = new unsigned char[MAX_DATA_SIZE];
+    for(int i = 0; i < MAX_DATA_SIZE; i++)
+        respData[i] = 0x00;
     int respLen = 1;
     
     if  ( commands_.find(message[COMMAND_INDEX]) != commands_.end() ) {

@@ -18,6 +18,15 @@ private:
     int dataLength_;
     unsigned char* data_;
     
+    uint32_t msgSeqNumber_;;
+    uint32_t msgSessionId_;
+    
+    static uint32_t inboundSequenceNumber_;
+    static uint32_t outboundSequenceNumber_;
+    static uint32_t sessionId_;
+    
+    unsigned char command_;
+    
 public:
     IpmiMessage();
     IpmiMessage(const unsigned char* msg, unsigned int msgSize);
@@ -28,6 +37,8 @@ public:
     
     bool serialize(const unsigned char* data, unsigned int dataSize,
                    IpmiMessage& responseMsg) const;
+    
+    bool validMessage() const;
 
     const unsigned char* message() const;
     unsigned int length() const;
@@ -37,13 +48,17 @@ public:
     
     unsigned char& operator[](const int index);
     const unsigned char& operator[](const int index) const;
- 
+    
+    static void setSessionId(const unsigned char* sessionId, unsigned int size);
     
 private:
     void clearMessage();
+    void updateSessionInfo();
+    
+    bool validSequenceNumber() const;
+    bool isSessionlessCommand() const;
     
     unsigned char computeChecksum(unsigned char* bytes, unsigned int length) const;
-
 };
 
 
