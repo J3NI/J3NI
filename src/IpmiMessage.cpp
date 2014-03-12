@@ -41,22 +41,27 @@ IpmiMessage::~IpmiMessage()
 
 bool IpmiMessage::setMessage(const unsigned char* msg, unsigned int msgLength)
 {
-    if(msgLength < MESSAGE_HEADER_LENGTH && msgLength != PING_LENGTH)
+    if(msgLength < MIN_DATA_SIZE && msgLength != PING_LENGTH)
     {
         return false;
     }
     clearMessage();
- 
-    updateSessionInfo();
     
-    command_ = message_[COMMAND_INDEX];
-
     msgLength_ = msgLength;
     message_ = new unsigned char[msgLength_];
     for(int i = 0; i < msgLength_; i++)
     {
         message_[i] = msg[i];
     }
+    
+    if(msgLength_ < MIN_DATA_SIZE)
+    {
+        return true;
+    }
+    
+    updateSessionInfo();
+    
+    command_ = message_[COMMAND_INDEX];
     
     dataLength_ = msgLength_ - (DATA_START_INDEX + 1);
     data_ = new unsigned char[dataLength_];

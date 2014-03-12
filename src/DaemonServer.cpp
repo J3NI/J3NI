@@ -30,20 +30,17 @@ extern std::ofstream log_file;
 const int DaemonServer::BUF_SIZE = 2048;
 
 DaemonServer::DaemonServer()
-    :   port(-1), username(NULL), password(NULL),
-        sessionId_(0), sequenceNumber_(0)
+    :   port(-1), username(NULL), password(NULL)
 {
 }
 
 DaemonServer::DaemonServer(int port)
-    :   port(port), username(NULL), password(NULL),
-        sessionId_(0), sequenceNumber_(0)
+    :   port(port), username(NULL), password(NULL)
 {
 }
 
 DaemonServer::DaemonServer(int port, char* uname, char* pass)
-    :   port(port), username(uname), password(pass),
-        sessionEstablished(0), sessionId_(0), sequenceNumber_(0)
+    :   port(port), username(uname), password(pass)
 {
 }
 

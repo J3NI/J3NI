@@ -25,10 +25,7 @@ private:
     int sock;                       //Socket
     
     static const int BUF_SIZE;
-    
-    bool sessionEstablished;
-    uint32_t sessionId_;
-    uint32_t sequenceNumber_;
+
     
 public:
     
