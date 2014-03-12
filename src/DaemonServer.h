@@ -25,10 +25,10 @@ private:
     int sock;                       //Socket
     
     static const int BUF_SIZE;
-
-	
-private:
-    void logMessage(const IpmiMessage& msg);
+    
+    bool sessionEstablished;
+    uint32_t sessionId_;
+    uint32_t sequenceNumber_;
     
 public:
     
@@ -41,6 +41,10 @@ public:
    void startDaemon();
    void startServer();
    void receiveData();
+    
+private:
+    void logMessage(const IpmiMessage& msg);
+    bool validateMessage(const IpmiMessage& msg);
 
 };
 

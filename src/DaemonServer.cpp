@@ -30,17 +30,20 @@ extern std::ofstream log_file;
 const int DaemonServer::BUF_SIZE = 2048;
 
 DaemonServer::DaemonServer()
-    : port(-1), username(NULL), password(NULL)
+    :   port(-1), username(NULL), password(NULL),
+        sessionId_(0), sequenceNumber_(0)
 {
 }
 
 DaemonServer::DaemonServer(int port)
-    : port(port), username(NULL), password(NULL)
+    :   port(port), username(NULL), password(NULL),
+        sessionId_(0), sequenceNumber_(0)
 {
 }
 
 DaemonServer::DaemonServer(int port, char* uname, char* pass)
-    : port(port), username(uname), password(pass)
+    :   port(port), username(uname), password(pass),
+        sessionEstablished(0), sessionId_(0), sequenceNumber_(0)
 {
 }
 
@@ -126,8 +129,8 @@ void DaemonServer::receiveData()
 
     if (recvLen > 0)
     {
-        // Print received message to log
         IpmiMessage recievedMsg(buf, recvLen);
+        // Print received message to log
         log_file << "Received a message of size "<< recievedMsg.length() << std::endl;
         logMessage(recievedMsg);
         
@@ -135,6 +138,11 @@ void DaemonServer::receiveData()
         IpmiMessage response;
         if (MsgHandler::isPing(recievedMsg))
             MsgHandler::pong(recievedMsg, response);
+        else if(!validateMessage(recievedMsg))
+        {
+            delete [] buf;
+            return;
+        }
         else
             MsgHandler::processRequest(recievedMsg, response);
       
@@ -164,4 +172,14 @@ void DaemonServer::logMessage(const IpmiMessage& msg)
         log_file << std::setw(2) << (int)msg[i] << " | ";
     log_file << std::dec << std::setfill(' ') <<  std::endl << std::flush;
 }
+
+bool DaemonServer::validateMessage(const IpmiMessage& msg)
+{
+    if(!msg.validMessage())
+    {
+        return false;
+    }
+    return true;
+}
+
 

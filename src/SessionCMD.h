@@ -25,8 +25,8 @@ private:
     unsigned char authType;
 public:
     ActSessionCMD(SetSessionPrivCMD* priv);
-    int verifyTempID(const unsigned char* data);
-    int verifyChalString(const unsigned char* data);
+    bool verifyTempID(const unsigned char* data);
+    bool verifyChalString(const unsigned char* data);
     int process(const unsigned char* request, int reqLength, unsigned char* response );
 };
 

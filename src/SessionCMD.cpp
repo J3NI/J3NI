@@ -1,6 +1,7 @@
 #include <SessionCMD.h>
 #include <ChannelCMD.h>
 #include <IpmiCommandDefines.h>
+#include <IpmiMessage.h>
 #include <fstream>
 
 using namespace IpmiCommandDefines;
@@ -8,6 +9,7 @@ extern std::ofstream log_file;
 
 int GetSessionChalCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
     log_file << "Processing Get Session Challenge CMD" << std::endl;
+    IpmiMessage::setSessionId(TEMP_SESSION_ID, 4);
     
     response[0] =  COMP_CODE_OK ;
     
@@ -24,25 +26,25 @@ int GetSessionChalCMD::process(const unsigned char* request, int reqLength, unsi
 
 ActSessionCMD::ActSessionCMD(SetSessionPrivCMD* priv): privCMD(priv), authType(0x00) { }
 
-int ActSessionCMD::verifyTempID(const unsigned char* data){
+bool ActSessionCMD::verifyTempID(const unsigned char* data){
     for(int i = 0; i < 4; i++) {
-        if (data[SESSION_ID_INDEX+i] != TEMP_SESSION_ID[i]) return 0;
+        if (data[SESSION_ID_INDEX+i] != TEMP_SESSION_ID[i]) return false;
     }
-    return 1;
+    return true;
 }
 
-int ActSessionCMD::verifyChalString(const unsigned char* data){
+bool ActSessionCMD::verifyChalString(const unsigned char* data){
     for(int i = 0; i < 16; i++) {
-        if (data[DATA_START_INDEX+i+2] != CHALLENGE_STRING[i]) return 0;
+        if (data[DATA_START_INDEX+i+2] != CHALLENGE_STRING[i]) return false;
     }
-    return 1;
+    return true;
 }
 
 int ActSessionCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
     log_file << "Processing Activate Session CMD" << std::endl;
-    response[0] = UNKNOWN_ERROR;
     if (!verifyTempID(request)) response[0] = INVALID_SESSION_ID;
-    else if ( verifyChalString(request) ){
+    else if (!verifyChalString(request) ) response[0] = UNKNOWN_ERROR;
+    else{
         response[0] = COMP_CODE_OK;
         response[1] = authType;
         for (int i = 0; i < 4; i++) response[i+2] = request[DATA_START_INDEX + i+19];
