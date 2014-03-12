@@ -9,6 +9,8 @@
 #ifndef IPMIMESSAGE_H
 #define IPMIMESSAGE_H
 
+#include <stdint.h>
+
 class IpmiMessage
 {
 private:
