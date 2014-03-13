@@ -50,6 +50,8 @@ int ActSessionCMD::process(const unsigned char* request, int reqLength, unsigned
         for (int i = 0; i < 4; i++) response[i+2] = request[DATA_START_INDEX + i+19];
         // response[6:9] all 0s for single session connection
         response[10] = privCMD->getPrivLvl();
+        
+        IpmiMessage::setSessionId(response + 2, 4);
         return 11;
     }
     return 1;
@@ -82,6 +84,7 @@ int SetSessionPrivCMD::setPrivLvl(const unsigned char newLvl){
 
 int CloseSessionCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
     log_file << "Closing session" << std::endl;
+    response[0] = COMP_CODE_OK;
     return 1;
 }
 
