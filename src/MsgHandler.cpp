@@ -69,8 +69,8 @@ void MsgHandler::initCMD() {
     TransportCommands_[0x22] = solConfig;
     
     //LAN Commands
-    GetLANConfigCMD * LANConfig = new GetLANConfigCMD();
-    TransportCommands_[0x01] = new SetLANConfigCMD(LANConfig);
+    GetLANConfigCMD * LANConfig = new GetLANConfigCMD(channelAuthCMD);
+    TransportCommands_[0x01] = new SetLANConfigCMD(LANConfig, channelAuthCMD);
     TransportCommands_[0x02] = LANConfig;
 }
 

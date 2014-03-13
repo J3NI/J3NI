@@ -5,8 +5,9 @@
 
 class  GetChannelAuthCMD:public I_Command{
 private:
-    static const unsigned char channelNum = 0x01;
+    unsigned char channelNum;
 public:
+    GetChannelAuthCMD();
     unsigned char getChannelNum();
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };

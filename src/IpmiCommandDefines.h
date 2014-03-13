@@ -49,10 +49,13 @@ namespace IpmiCommandDefines
     const unsigned int CANNOT_EXEC_DISABLED     = 0xD6;
     const unsigned int INVALID_SESSION_ID       = 0x85;
     const unsigned int PRIV_LVL_UNAVAILABLE     = 0x80;
+    const unsigned int PARAM_UNSUPPORTED        = 0x80;
     const unsigned int ACC_MODE_UNSUPPORTED     = 0x83;
     const unsigned int UNKNOWN_ERROR            = 0xFF;
     
     const unsigned int MAX_DATA_SIZE            = 42;
+    
+    const unsigned int CHANNEL_NUMBER           = 0x01;
 }
 
 #endif
