@@ -23,6 +23,10 @@ struct LanParam
         data = new unsigned char[length];
         for (int i = 0; i < l; i++) data[i] = d[i];
     }
+    
+    ~LanParam(){
+        delete data;
+    }
 };
 
 class GetLANConfigCMD:public I_Command
@@ -56,7 +60,6 @@ private:
     //[2] = 0 MD5
     //[1] = 0 MD2
     //[0] = 1 NONE
-
     
     //IP Address
     //Default = 127.0.0.1
@@ -119,6 +122,7 @@ private:
 
 public:
     GetLANConfigCMD(GetChannelAuthCMD* getAuth);
+    ~GetLANConfigCMD();
     bool setMap(unsigned char param, const unsigned char* reqData, int reqLength);
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };

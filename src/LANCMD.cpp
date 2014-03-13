@@ -50,6 +50,14 @@ GetLANConfigCMD::GetLANConfigCMD(GetChannelAuthCMD* getAuth)
     LANparamMap[0x11] = new LanParam(1, new unsigned char(0x00));
 }
 
+GetLANConfigCMD::~GetLANConfigCMD(){
+    LANMap::iterator it;
+    for(it = LANparamMap.begin(); it != LANparamMap.end(); it++)
+    {
+        delete it->second;
+    }
+    LANparamMap.clear();
+}
 
 int GetLANConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
