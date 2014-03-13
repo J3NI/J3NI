@@ -35,6 +35,7 @@ unsigned char GetChannelAuthCMD::getChannelNum(){
 
 int GetChannelCipherSuitesCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
+   log_file << "Processing Get Channel Cipher Suites CMD" << std::endl;
    response[0] = COMP_CODE_OK;	// Completion code
    if(request[0]==0x0E) 	// return channel num for channel cmd was received on
 	response[1] = GetChanAuthCMD->getChannelNum();
@@ -53,6 +54,7 @@ int GetChannelCipherSuitesCMD::process(const unsigned char* request, int reqLeng
 
 int GetChannelInfoCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
+   log_file << "Processing Get Channel Info CMD" << std::endl;
    response[0] = COMP_CODE_OK;	// Completion code
    if(request[0]==0x0E) 	// return channel num for channel cmd was received on
 	response[1] = GetChanAuthCMD->getChannelNum();
@@ -72,6 +74,7 @@ int GetChannelInfoCMD::process(const unsigned char* request, int reqLength, unsi
 
 int SetChannelAccessCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
+   log_file << "Processing Set Channel Access CMD" << std::endl;
    unsigned char newLvl = request[2] & 0x0F;
    if(setChanPrivLvl(newLvl)==1 && (request[2]&0xC0)!=0x00)
 	response[0] = COMP_CODE_OK;
@@ -103,6 +106,7 @@ unsigned char SetChannelAccessCMD::getChanPrivLvl()
 
 int GetChannelAccessCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
+   log_file << "Processing Get Channel Access CMD" << std::endl;
    response[0] = COMP_CODE_OK;
    response[1] = 0x3A;	// 0011 1010
 			// [7:6] 00b	reserved
