@@ -134,6 +134,12 @@ bool IpmiMessage::validMessage() const
         return ((sessionId_ == msgSessionId_) && validSequenceNumber());
 }
 
+
+unsigned char IpmiMessage::getNetFn() const
+{
+    return ((message_[NET_FN_INDEX] & NET_FN_MASK) >> 2);
+}
+
 const unsigned char* IpmiMessage::message() const
 {
     return message_;

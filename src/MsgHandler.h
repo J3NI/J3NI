@@ -10,7 +10,13 @@ class MsgHandler {
     
 private:
     typedef std::map<unsigned char, I_Command*> CommandMap;
-    static CommandMap commands_;
+    static CommandMap AppCommands_;
+    static CommandMap ChassisCommands_;
+    static CommandMap SECommands_;
+    static CommandMap StorageCommands_;
+    static CommandMap FirmCommands_;
+    static CommandMap TransportCommands_;
+    static CommandMap BridgeCommands_;
     
 public:
     static void initCMD();

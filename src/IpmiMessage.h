@@ -41,6 +41,8 @@ public:
                    IpmiMessage& responseMsg) const;
     
     bool validMessage() const;
+    
+    unsigned char getNetFn() const;
 
     const unsigned char* message() const;
     unsigned int length() const;
