@@ -87,10 +87,10 @@ bool IpmiMessage::serialize(const unsigned char* data, unsigned int dataSize,
     if(sessionId_ != 0)
     {
         outboundSequenceNumber_++;
-        response[SESSION_SEQ_NUM_INDEX] = (outboundSequenceNumber_ & 0xFF000000) >> 24;
-        response[SESSION_SEQ_NUM_INDEX + 1] = (outboundSequenceNumber_ & 0x00FF0000) >> 16;
-        response[SESSION_SEQ_NUM_INDEX + 2] = (outboundSequenceNumber_ & 0x0000FF00) >> 8;
-        response[SESSION_SEQ_NUM_INDEX + 3] = (outboundSequenceNumber_ & 0x000000FF);
+        response[SESSION_SEQ_NUM_INDEX] = (outboundSequenceNumber_ & 0x000000FF);
+        response[SESSION_SEQ_NUM_INDEX + 1] = (outboundSequenceNumber_ & 0x0000FF00) >> 8;
+        response[SESSION_SEQ_NUM_INDEX + 2] = (outboundSequenceNumber_ & 0x00FF0000) >> 16;
+        response[SESSION_SEQ_NUM_INDEX + 3] = (outboundSequenceNumber_ & 0xFF000000) >> 24;
     }
     
     response[AUTH_TYPE_INDEX] = message_[AUTH_TYPE_INDEX];
@@ -176,6 +176,8 @@ void IpmiMessage::setSessionId(const unsigned char* sessionId,
 {
     if(size < 4) return;
     
+    inboundSequenceNumber_ = 0;
+    outboundSequenceNumber_ = 0;
     sessionId_ = sessionId[0] << 24;
     sessionId_ = sessionId_ | (sessionId[1] << 16);
     sessionId_ = sessionId_ | (sessionId[2] << 8);
@@ -208,13 +210,13 @@ void IpmiMessage::updateSessionInfo()
     msgSessionId_ = msgSessionId_ | (message_[SESSION_ID_INDEX + 2] << 8);
     msgSessionId_ = msgSessionId_ | (message_[SESSION_ID_INDEX + 3]);
     
-    msgSeqNumber_ = message_[SESSION_SEQ_NUM_INDEX] << 24;
+    msgSeqNumber_ = message_[SESSION_SEQ_NUM_INDEX];
     msgSeqNumber_ = msgSeqNumber_ |
-        (message_[SESSION_SEQ_NUM_INDEX + 1] << 16);
+        (message_[SESSION_SEQ_NUM_INDEX + 1] << 8);
     msgSeqNumber_ = msgSeqNumber_ |
-        (message_[SESSION_SEQ_NUM_INDEX + 2] << 8);
+        (message_[SESSION_SEQ_NUM_INDEX + 2] << 16);
     msgSeqNumber_ = msgSeqNumber_ |
-        (message_[SESSION_SEQ_NUM_INDEX + 3]);
+        (message_[SESSION_SEQ_NUM_INDEX + 3] << 24);
     
     if(sessionId_ != 0 && sessionId_ == msgSessionId_)
     {
@@ -230,13 +232,14 @@ bool IpmiMessage::validSequenceNumber() const
 {
     uint32_t minSeqNum = inboundSequenceNumber_ - 16;
     uint32_t maxSeqNum = inboundSequenceNumber_ + 15;
+
     if((minSeqNum > inboundSequenceNumber_) ||
        (maxSeqNum < inboundSequenceNumber_))
     {   
         return ((msgSeqNumber_ <= maxSeqNum) ||
                 (msgSeqNumber_ >= minSeqNum));
     }
-    
+
     return ((msgSeqNumber_ >= minSeqNum) &&
             (msgSeqNumber_ <= maxSeqNum));
 }
