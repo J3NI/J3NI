@@ -1,40 +1,22 @@
 #ifndef LANCMD_H
 #define LANCMD_H
 
-#include <I_Command.h>
+#include <fstream>
 #include <string.h>
+
+#include <ConfigParam.h>
+#include <I_Command.h>
 #include <MsgHandler.h>
 #include <IpmiCommandDefines.h>
-#include <fstream>
 
 class GetChannelAuthCMD;
-
-
-struct LanParam
-{
-    int rev;
-    int length;
-    unsigned char * data;
-    
-    LanParam(int l, unsigned char* d)
-    {
-        rev=0;
-        length = l;
-        data = new unsigned char[length];
-        for (int i = 0; i < l; i++) data[i] = d[i];
-    }
-    
-    ~LanParam(){
-        delete data;
-    }
-};
 
 class GetLANConfigCMD:public I_Command
 {
 private:
     GetChannelAuthCMD* getAuthCMD;
-    typedef std::map<unsigned char, LanParam*> LANMap;
-    LANMap LANparamMap;
+
+    ConfigParamMap LANparamMap;
     
     //Configuration Parameter Data
     //Set in Progress (Volatile)

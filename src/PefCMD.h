@@ -9,6 +9,7 @@
 #ifndef PEFCMD_H
 #define PEFCMD_H
 
+#include <ConfigParam.h>
 #include <I_Command.h>
 #include <stdint.h>
 
@@ -50,19 +51,34 @@ public:
                         unsigned char* response );
 };
 
-//class GetPefConfigParamCMD : public I_Command
-//{
-//public:
-//    virtual int process(const unsigned char* request, int reqLength,
-//                        unsigned char* response );
-//};
-//
-//class SetPefConfigParamCMD : public I_Command
-//{
-//public:
-//    virtual int process(const unsigned char* request, int reqLength,
-//                        unsigned char* response );
-//};
+class GetPefConfigParamCMD : public I_Command
+{
+private:
+    ConfigParamMap pefConfigMap;
+    
+public:
+    GetPefConfigParamCMD();
+    
+    unsigned char setMap(unsigned char param,
+                         const unsigned char* paramValue,
+                         int length);
+    
+    virtual int process(const unsigned char* request, int reqLength,
+                        unsigned char* response );
+};
+
+class SetPefConfigParamCMD : public I_Command
+{
+private:
+    GetPefConfigParamCMD* getPefConfigParam_;
+    
+    
+public:
+    SetPefConfigParamCMD(GetPefConfigParamCMD* getPefConfigParam);
+    
+    virtual int process(const unsigned char* request, int reqLength,
+                        unsigned char* response );
+};
 
 class GetLastProcEventIdCMD : public I_Command
 {
@@ -70,6 +86,7 @@ private:
     uint16_t* mostRecentId_;
     uint16_t bmcRecordId_;
     uint16_t swRecordId_;
+    time_t timestamp_;
     
 public:
     GetLastProcEventIdCMD();

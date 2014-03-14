@@ -4,9 +4,10 @@
 
 #include <ChassisCMD.h>
 #include <ChannelCMD.h>
+#include <LANCMD.h>
+#include <PefCMD.h>
 #include <SessionCMD.h>
 #include <SoLCMD.h>
-#include <LANCMD.h>
 
 #include <fstream>
 
@@ -44,7 +45,6 @@ void MsgHandler::initCMD() {
     ChassisCommands_[0x09] = new GetChassisBootOpt();
          */
     ChassisCommands_[0x0F] = chassisPOH;
-
     
     // Channel Commands
     GetChannelAuthCMD* channelAuthCMD = new GetChannelAuthCMD();
@@ -62,6 +62,16 @@ void MsgHandler::initCMD() {
     AppCommands_[0x3c] = new CloseSessionCMD();
     AppCommands_[0x3d] = new GetSessionInfo(sessionPrivCMD, channelAuthCMD);
 
+    // PEF Commands
+    GetPefConfigParamCMD* pefConfigParamCmd = new GetPefConfigParamCMD();
+    GetLastProcEventIdCMD* procEventIdCmd = new GetLastProcEventIdCMD();
+    SECommands_[0x10] = new GetPefCapabCMD();
+    SECommands_[0x11] = new ArmPefPostponeTimerCMD();
+    SECommands_[0x12] = new SetPefConfigParamCMD(pefConfigParamCmd);
+    SECommands_[0x13] = new GetPefConfigParamCMD();
+    SECommands_[0x14] = new SetLastProcEventIdCMD(procEventIdCmd);
+    SECommands_[0x15] = new GetLastProcEventIdCMD();
+    
     //SoL Commands
     GetSoLConfigCMD * solConfig = new GetSoLConfigCMD();
     TransportCommands_[0x20] = new SoLActivatingCMD();

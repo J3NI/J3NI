@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Neil. All rights reserved.
 //
 
+#include <fstream>
 #include <stdlib.h>
 #include <time.h>
 
@@ -13,6 +14,7 @@
 #include <IpmiCommandDefines.h>
 
 using namespace IpmiCommandDefines;
+extern std::ofstream log_file;
 
 GetPefCapabCMD::GetPefCapabCMD() : pefCapab_(0x0E)
 {
@@ -31,6 +33,7 @@ unsigned char GetPefCapabCMD::getPefCapab() const
 int GetPefCapabCMD::process(const unsigned char* req, int reqLength,
                           unsigned char* resp)
 {
+    log_file << "Get PEF Capabilities Command" << std::endl;
     
     resp[0] = COMP_CODE_OK;
     resp[1] = 0x51;
@@ -49,6 +52,7 @@ ArmPefPostponeTimerCMD::ArmPefPostponeTimerCMD() : countdownDuration(0)
 int ArmPefPostponeTimerCMD::process(const unsigned char* req, int reqLength,
                                     unsigned char* resp)
 {
+    log_file << "Arm PEF Postpone Timer Command" << std::endl;
     
     time_t t = time(0);
     if(req[0] == 0xFE || req[0] == 0x00)
@@ -71,27 +75,110 @@ int ArmPefPostponeTimerCMD::process(const unsigned char* req, int reqLength,
     return 2;
 }
 
-//int GetPefConfigParamCMD::process(const unsigned char* req, int reqLength,
-//                                  unsigned char* resp)
-//{
-//    resp[0] = COMP_CODE_OK;
-//    resp[1] = 0x11;
-//    if((req[0] & 0x80) == 0x80)
-//        return 2;
-//    return 2
-//}
-//
-//int SetPefConfigParamCMD::process(const unsigned char* req, int reqLength,
-//                                  unsigned char* resp)
-//{
-//    resp[0] = COMP_CODE_OK;
-//    return 1;
-//}
+GetPefConfigParamCMD::GetPefConfigParamCMD()
+{
+    unsigned char defaultInProgress = 0x00;
+    pefConfigMap[0x00] = new ConfigParam(1, &defaultInProgress);
+    
+    unsigned char defaultControl = 0x01;
+    pefConfigMap[0x01] = new ConfigParam(1, &defaultControl);
+    
+    unsigned char defaultActionControl = 0x0E;
+    pefConfigMap[0x02] = new ConfigParam(1, &defaultActionControl);
+    
+    unsigned char defaultStartupDelay = 0x00;
+    pefConfigMap[0x03] = new ConfigParam(1, &defaultStartupDelay);
+    
+    unsigned char defaultAlertStartupDelay = 0x00;
+    pefConfigMap[0x04] = new ConfigParam(1, &defaultAlertStartupDelay);
+    
+    unsigned char eventFilters = 0x00;
+    pefConfigMap[0x05] = new ConfigParam(1, &eventFilters, true);
+    
+}
+
+
+unsigned char GetPefConfigParamCMD::setMap(unsigned char param,
+                                           const unsigned char* paramValue,
+                                           int length)
+{
+    unsigned char paramSelector = paramValue[0] & 0x7F;
+    ConfigParamMap::iterator it = pefConfigMap.find(paramSelector);
+    if(it == pefConfigMap.end())
+    {
+        return PARAM_UNSUPPORTED;
+    }
+    
+    ConfigParam* configParam = it->second;
+    if(configParam->readOnly)
+    {
+        return WRITE_TO_READ_ONLY;
+    }
+    if((param == 0x00) && (configParam->data[0] != 0x00))
+    {
+        return SET_IN_PROGRESS_FAIL;
+    }
+    if(configParam->length != length)
+    {
+        delete[] configParam->data;
+        configParam->data = new unsigned char[length];
+    }
+    for(int i = 0; i < configParam->length; i++)
+    {
+        configParam->data[i] = paramValue[i];
+    }
+    return COMP_CODE_OK;
+}
+
+int GetPefConfigParamCMD::process(const unsigned char* req, int reqLength,
+                                  unsigned char* resp)
+{
+    log_file << "Get PEF Configuration Parameters Command" << std::endl;
+    resp[0] = COMP_CODE_OK;
+    resp[1] = 0x11;
+    if((req[0] & 0x80) == 0x80)
+        return 2;
+    
+    unsigned char paramSelector = req[0] & 0x7F;
+    ConfigParamMap::iterator it = pefConfigMap.find(paramSelector);
+    if(it == pefConfigMap.end())
+    {
+        resp[0] = PARAM_UNSUPPORTED;
+        return 2;
+    }
+    
+    ConfigParam* param = it->second;
+    int i = 0;
+    for(; i < param->length; i++)
+    {
+        resp[2 + i] = param->data[i];
+    }
+    return 2 + i;
+}
+
+
+SetPefConfigParamCMD::SetPefConfigParamCMD(GetPefConfigParamCMD* getPefConfigParam)
+{
+    getPefConfigParam_ = getPefConfigParam;
+}
+
+int SetPefConfigParamCMD::process(const unsigned char* req, int reqLength,
+                                  unsigned char* resp)
+{
+    log_file << "Set PEF Configuration Parameters Command" << std::endl;
+
+    unsigned char paramSelector = req[0] & 0x7F;
+    resp[0] = getPefConfigParam_->setMap(paramSelector,
+                                         req + 1, reqLength - 1);
+    
+    return 1;
+}
 
 
 GetLastProcEventIdCMD::GetLastProcEventIdCMD()
-    :   mostRecentId_(NULL), bmcRecordId_(0xFFFF), swRecordId_(0xFFFF)
+    :   mostRecentId_(NULL), bmcRecordId_(0x0000), swRecordId_(0x0000)
 {
+    timestamp_ = time(0);
     mostRecentId_ = &swRecordId_;
 }
 
@@ -100,6 +187,7 @@ void GetLastProcEventIdCMD::setBmcRecordId(const unsigned char* recordId, int le
     if(length < 2) return;
     bmcRecordId_ = recordId[0] | (recordId[1] << 8);
     mostRecentId_ = &bmcRecordId_;
+    timestamp_ = time(0);
 }
 
 void GetLastProcEventIdCMD::setSwRecordId(const unsigned char* recordId, int length)
@@ -107,6 +195,7 @@ void GetLastProcEventIdCMD::setSwRecordId(const unsigned char* recordId, int len
     if(length < 2) return;
     swRecordId_ = recordId[0] | (recordId[1] << 8);
     mostRecentId_ = &swRecordId_;
+    timestamp_ = time(0);
 }
 
 uint16_t GetLastProcEventIdCMD::getBmcRecordId() const
@@ -122,14 +211,21 @@ uint16_t GetLastProcEventIdCMD::getSwRecordId() const
 int GetLastProcEventIdCMD::process(const unsigned char* req, int reqLength,
                                    unsigned char* resp)
 {
+    log_file << "Get Last Proccessed Event Id Command" << std::endl;
+    
     resp[0] = COMP_CODE_OK;
-    // 1-4 Timestamp
+    resp[1] = timestamp_ & 0x000000FF;
+    resp[2] = (timestamp_ & 0x0000FF00) >> 8;
+    resp[3] = (timestamp_ & 0x00FF0000) >> 16;
+    resp[4] = (timestamp_ & 0xFF000000) >> 24;
     resp[5] = *mostRecentId_ & 0x00FF ;
     resp[6] = (*mostRecentId_ & 0xFF00) >> 8;
     resp[7] = swRecordId_ & 0x00FF ;
     resp[8] = (swRecordId_ & 0xFF00) >> 8;
     resp[9] = swRecordId_ & 0x00FF ;
     resp[10] = (swRecordId_ & 0xFF00) >> 8;
+    
+    return 11; 
 }
 
 SetLastProcEventIdCMD::SetLastProcEventIdCMD(GetLastProcEventIdCMD* lastProcEventCmd)
@@ -140,6 +236,8 @@ SetLastProcEventIdCMD::SetLastProcEventIdCMD(GetLastProcEventIdCMD* lastProcEven
 int SetLastProcEventIdCMD::process(const unsigned char* req, int reqLength,
                                    unsigned char* resp)
 {
+    log_file << "Set Last Proccessed Event Id Command" << std::endl;
+    
     resp[0] = COMP_CODE_OK;
     if (reqLength >= 3)
     {

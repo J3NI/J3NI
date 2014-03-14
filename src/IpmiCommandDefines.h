@@ -50,6 +50,9 @@ namespace IpmiCommandDefines
     const unsigned int INVALID_SESSION_ID       = 0x85;
     const unsigned int PRIV_LVL_UNAVAILABLE     = 0x80;
     const unsigned int PARAM_UNSUPPORTED        = 0x80;
+    const unsigned int SET_IN_PROGRESS_FAIL     = 0x81;
+    const unsigned int WRITE_TO_READ_ONLY       = 0x82;
+    const unsigned int READ_FROM_WRITE_ONLY     = 0x83;
     const unsigned int ACC_MODE_UNSUPPORTED     = 0x83;
     const unsigned int UNKNOWN_ERROR            = 0xFF;
     

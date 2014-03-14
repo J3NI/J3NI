@@ -8,50 +8,50 @@ GetLANConfigCMD::GetLANConfigCMD(GetChannelAuthCMD* getAuth)
 {
     getAuthCMD = getAuth;
 
-    LANparamMap[0x00] = new LanParam(1, new unsigned char(0x00));
-    LANparamMap[0x01] = new LanParam(1, new unsigned char(0x01));
+    LANparamMap[0x00] = new ConfigParam(1, new unsigned char(0x00));
+    LANparamMap[0x01] = new ConfigParam(1, new unsigned char(0x01));
     
     unsigned char AuthTypeEnableData[] = {0x11, 0x11, 0x11, 0x11, 0x11} ;
-    LANparamMap[0x02] = new LanParam(5, AuthTypeEnableData);
+    LANparamMap[0x02] = new ConfigParam(5, AuthTypeEnableData);
     
     unsigned char IPAddressData[] = {0x7f, 0x00, 0x00, 0x01};
-    LANparamMap[0x03] = new LanParam(4, IPAddressData);
+    LANparamMap[0x03] = new ConfigParam(4, IPAddressData);
 
-    LANparamMap[0x04] = new LanParam(1, new unsigned char(0x01));
+    LANparamMap[0x04] = new ConfigParam(1, new unsigned char(0x01));
 
-    LANparamMap[0x05] = new LanParam(1, new unsigned char[5]());
+    LANparamMap[0x05] = new ConfigParam(1, new unsigned char[5]());
 
-    LANparamMap[0x06] = new LanParam(1, new unsigned char[3]());
+    LANparamMap[0x06] = new ConfigParam(1, new unsigned char[3]());
     
     unsigned char IPv4HeaderData[] = {0x40,0x40,0x10} ;
-    LANparamMap[0x07] = new LanParam(3, IPv4HeaderData);
+    LANparamMap[0x07] = new ConfigParam(3, IPv4HeaderData);
     
     unsigned char PrimaryRMCPPortData[] = {0x02, 0x6F};
-    LANparamMap[0x08] = new LanParam(2, PrimaryRMCPPortData);
+    LANparamMap[0x08] = new ConfigParam(2, PrimaryRMCPPortData);
     
     unsigned char SecondaryRMCPPortData[] = {0x02, 0x98};
-    LANparamMap[0x09] = new LanParam(2, SecondaryRMCPPortData);
+    LANparamMap[0x09] = new ConfigParam(2, SecondaryRMCPPortData);
     
-    LANparamMap[0x0A] = new LanParam(1, new unsigned char(0x00));
+    LANparamMap[0x0A] = new ConfigParam(1, new unsigned char(0x00));
 
-    LANparamMap[0x0B] = new LanParam(1, new unsigned char(0x00));
+    LANparamMap[0x0B] = new ConfigParam(1, new unsigned char(0x00));
     
-    LANparamMap[0x0C] = new LanParam(4, IPAddressData);
+    LANparamMap[0x0C] = new ConfigParam(4, IPAddressData);
 
-    LANparamMap[0x0D] = new LanParam(5, new unsigned char[5]());
+    LANparamMap[0x0D] = new ConfigParam(5, new unsigned char[5]());
 
-    LANparamMap[0x0E] = new LanParam(4, IPAddressData);
+    LANparamMap[0x0E] = new ConfigParam(4, IPAddressData);
     
-    LANparamMap[0x0F] = new LanParam(5, new unsigned char[5]());
+    LANparamMap[0x0F] = new ConfigParam(5, new unsigned char[5]());
     
     unsigned char communityStringData[] = {'J','3','N','I','I','P','M','I',0,0,0,0,0,0,0,0,0,0};
-    LANparamMap[0x10] = new LanParam(18,  communityStringData);
+    LANparamMap[0x10] = new ConfigParam(18,  communityStringData);
     
-    LANparamMap[0x11] = new LanParam(1, new unsigned char(0x00));
+    LANparamMap[0x11] = new ConfigParam(1, new unsigned char(0x00));
 }
 
 GetLANConfigCMD::~GetLANConfigCMD(){
-    LANMap::iterator it;
+    ConfigParamMap::iterator it;
     for(it = LANparamMap.begin(); it != LANparamMap.end(); it++)
     {
         delete it->second;
