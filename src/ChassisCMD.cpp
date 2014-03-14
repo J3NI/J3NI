@@ -200,7 +200,7 @@ int SetChassisPowerRestore::process( const unsigned char* request, int reqLength
     statusCmd_->setPowerPolicy(request[0]);
     response[0] = COMP_CODE_OK;
     response[1] = statusCmd_->getPowerPolicy();
-    return 1;
+    return 2;
 }
 
 int  SetChassisPowerCycle::process( const unsigned char* request, int reqLength, unsigned char* response )

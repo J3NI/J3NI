@@ -8,8 +8,10 @@ GetLANConfigCMD::GetLANConfigCMD(GetChannelAuthCMD* getAuth)
 {
     getAuthCMD = getAuth;
 
-    LANparamMap[0x00] = new ConfigParam(1, new unsigned char(0x00));
-    LANparamMap[0x01] = new ConfigParam(1, new unsigned char(0x01));
+    unsigned char setInProgress = 0x00;
+    LANparamMap[0x00] = new ConfigParam(1, &setInProgress);
+    unsigned char authenticationType = 0x01;
+    LANparamMap[0x01] = new ConfigParam(1, &authenticationType, true);
     
     unsigned char AuthTypeEnableData[] = {0x11, 0x11, 0x11, 0x11, 0x11} ;
     LANparamMap[0x02] = new ConfigParam(5, AuthTypeEnableData);
@@ -17,11 +19,14 @@ GetLANConfigCMD::GetLANConfigCMD(GetChannelAuthCMD* getAuth)
     unsigned char IPAddressData[] = {0x7f, 0x00, 0x00, 0x01};
     LANparamMap[0x03] = new ConfigParam(4, IPAddressData);
 
-    LANparamMap[0x04] = new ConfigParam(1, new unsigned char(0x01));
+    unsigned char ipAddress = 0x01;
+    LANparamMap[0x04] = new ConfigParam(1, &ipAddress);
 
-    LANparamMap[0x05] = new ConfigParam(1, new unsigned char[5]());
-
-    LANparamMap[0x06] = new ConfigParam(1, new unsigned char[3]());
+    unsigned char macAddress[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    LANparamMap[0x05] = new ConfigParam(6, macAddress);
+    
+    unsigned char subnetMask[] = {0x00, 0x00, 0x00, 0x00};
+    LANparamMap[0x06] = new ConfigParam(4, subnetMask);
     
     unsigned char IPv4HeaderData[] = {0x40,0x40,0x10} ;
     LANparamMap[0x07] = new ConfigParam(3, IPv4HeaderData);
@@ -32,22 +37,25 @@ GetLANConfigCMD::GetLANConfigCMD(GetChannelAuthCMD* getAuth)
     unsigned char SecondaryRMCPPortData[] = {0x02, 0x98};
     LANparamMap[0x09] = new ConfigParam(2, SecondaryRMCPPortData);
     
-    LANparamMap[0x0A] = new ConfigParam(1, new unsigned char(0x00));
+    unsigned char bmcGeneratedArp = 0x00;
+    LANparamMap[0x0A] = new ConfigParam(1, &bmcGeneratedArp);
 
-    LANparamMap[0x0B] = new ConfigParam(1, new unsigned char(0x00));
+    unsigned char gratuitousArp = 0x00;
+    LANparamMap[0x0B] = new ConfigParam(1, &gratuitousArp);
     
     LANparamMap[0x0C] = new ConfigParam(4, IPAddressData);
 
-    LANparamMap[0x0D] = new ConfigParam(5, new unsigned char[5]());
+    LANparamMap[0x0D] = new ConfigParam(6, macAddress);
 
     LANparamMap[0x0E] = new ConfigParam(4, IPAddressData);
     
-    LANparamMap[0x0F] = new ConfigParam(5, new unsigned char[5]());
+    LANparamMap[0x0F] = new ConfigParam(6, macAddress);
     
     unsigned char communityStringData[] = {'J','3','N','I','I','P','M','I',0,0,0,0,0,0,0,0,0,0};
     LANparamMap[0x10] = new ConfigParam(18,  communityStringData);
     
-    LANparamMap[0x11] = new ConfigParam(1, new unsigned char(0x00));
+    unsigned char destinationNum = 0x00;
+    LANparamMap[0x11] = new ConfigParam(1, &destinationNum, true);
 }
 
 GetLANConfigCMD::~GetLANConfigCMD(){
@@ -66,7 +74,7 @@ int GetLANConfigCMD::process( const unsigned char* request, int reqLength, unsig
     
     unsigned char revMask = 0x80;
     
-    if (request[0]&(getAuthCMD->getChannelNum())==getAuthCMD->getChannelNum()){
+    if ((request[0]&getAuthCMD->getChannelNum())==getAuthCMD->getChannelNum()){
         log_file << "Getting parameters for this channel" << std::endl;
         if ((((request[0]&revMask) == revMask) && ((LANparamMap[request[1]]->rev) > 0)) || (request[0]&revMask)==0){
             if  ( LANparamMap.find(request[1]) != LANparamMap.end() ) {
@@ -102,7 +110,7 @@ int SetLANConfigCMD::process( const unsigned char* request, int reqLength, unsig
 {
     log_file << "Set LAN Configuration Parameters Command" << std::endl;    
     
-    if (request[0]&(getAuthCMD->getChannelNum())==getAuthCMD->getChannelNum()){
+    if ((request[0]&getAuthCMD->getChannelNum())==getAuthCMD->getChannelNum()){
         log_file << "Setting parameters for this channel" << std::endl;
         if (LANConfigCMD->setMap(request[1], request, (reqLength-2))) response[0] = COMP_CODE_OK;
         else response[0] = PARAM_UNSUPPORTED;

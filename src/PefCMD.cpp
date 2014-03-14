@@ -104,6 +104,17 @@ GetPefConfigParamCMD::GetPefConfigParamCMD()
 }
 
 
+GetPefConfigParamCMD::~GetPefConfigParamCMD()
+{
+    for(ConfigParamMap::iterator it = pefConfigMap.begin();
+        it != pefConfigMap.end(); it++)
+    {
+        delete it->second;
+    }
+    pefConfigMap.clear();
+}
+
+
 unsigned char GetPefConfigParamCMD::setMap(unsigned char param,
                                            const unsigned char* paramValue,
                                            int length)

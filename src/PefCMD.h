@@ -58,6 +58,7 @@ private:
     
 public:
     GetPefConfigParamCMD();
+    ~GetPefConfigParamCMD();
     
     unsigned char setMap(unsigned char param,
                          const unsigned char* paramValue,
