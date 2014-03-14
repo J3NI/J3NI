@@ -95,6 +95,12 @@ GetPefConfigParamCMD::GetPefConfigParamCMD()
     unsigned char eventFilters = 0x00;
     pefConfigMap[0x05] = new ConfigParam(1, &eventFilters, true);
     
+    unsigned char alertPolicyNum = 0x00;
+    pefConfigMap[0x08] = new ConfigParam(1, &alertPolicyNum, true);
+    
+    // Generate or use default GUID?
+    //pefConfigMap[0x0A] = new ConfigParam[]
+    
 }
 
 
