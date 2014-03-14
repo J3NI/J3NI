@@ -81,7 +81,6 @@ int main(int args, char** argv)
     while(1)
     {
         udpDaemon->receiveData();
-        sleep(2);
     }
     MsgHandler::clearCMD();
    
