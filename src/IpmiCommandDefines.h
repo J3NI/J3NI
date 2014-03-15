@@ -55,6 +55,8 @@ namespace IpmiCommandDefines
     const unsigned int READ_FROM_WRITE_ONLY     = 0x83;
     const unsigned int ACC_MODE_UNSUPPORTED     = 0x83;
     const unsigned int UNKNOWN_ERROR            = 0xFF;
+    const unsigned int INVALID_CMD              = 0xC1;
+    
     
     const unsigned int MAX_DATA_SIZE            = 42;
     

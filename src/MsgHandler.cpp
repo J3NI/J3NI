@@ -1,3 +1,4 @@
+#include <BashScriptDefines.h>
 #include <MsgHandler.h>
 #include <IpmiMessage.h>
 #include <IpmiCommandDefines.h>
@@ -10,6 +11,7 @@
 #include <SoLCMD.h>
 
 #include <fstream>
+#include <stdlib.h>
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
@@ -22,8 +24,55 @@ MsgHandler::CommandMap MsgHandler::FirmCommands_;
 MsgHandler::CommandMap MsgHandler::StorageCommands_;
 MsgHandler::CommandMap MsgHandler::TransportCommands_;
 
+MsgHandler::bashMap MsgHandler::bashMap_;
+
+bool MsgHandler::BashOK(unsigned char netFn, unsigned char  cmd){
+    int bashMapIndex = (netFn<<8)|cmd;
+    if  ( (bashMap_.find(bashMapIndex) != bashMap_.end()) && (bashMap_[bashMapIndex][0]!='\0')) {
+        return system(bashMap_[bashMapIndex]);
+    }
+    return true;
+}
+void MsgHandler::initBash(){
+    bashMap_[0x000] = bashSripts::GetChassisCapabilities;
+    bashMap_[0x001] = bashSripts::GetChassisStatus;
+    bashMap_[0x002] = bashSripts::ChassisControl;
+    bashMap_[0x003] = bashSripts::ChassisReset;
+    bashMap_[0x004] = bashSripts::ChassisIdentify;
+    bashMap_[0x00A] = bashSripts::ChassisFrontPanel;
+    bashMap_[0x005] = bashSripts::SetChassisCapabilities;
+    bashMap_[0x006] = bashSripts::SetPowerRestorePolicy;
+    bashMap_[0x00B] = bashSripts::SetChassisPowerCycle;
+    bashMap_[0x007] = bashSripts::GetChassisRestartCause;
+    bashMap_[0x00F] = bashSripts::GetPOH;
+    
+    bashMap_[0x410] = bashSripts::GetPEFCapabilities;
+    bashMap_[0x411] = bashSripts::ArmPEFPostponeTimer;
+    bashMap_[0x412] = bashSripts::SetPEFConfigurationParameters ;
+    bashMap_[0x413] = bashSripts::GetPEFConfigurationParameters ;
+    bashMap_[0x414] = bashSripts::SetLastProcessedEventID;
+    bashMap_[0x415] = bashSripts::GetLastProcessedEventID;
+    
+    bashMap_[0x638] = bashSripts::GetChannelAuthentication;
+    bashMap_[0x639] = bashSripts::GetSessionChallenge;
+    bashMap_[0x63a] = bashSripts::ActivateSession;
+    bashMap_[0x63b] = bashSripts::SetSessionPrivilegeLevel;
+    bashMap_[0x63c] = bashSripts::CloseSession;
+    bashMap_[0x63d] = bashSripts::GetSessionInfo;
+    bashMap_[0x640] = bashSripts::SetChannelAccess;
+    bashMap_[0x641] = bashSripts::GetChannelAccess;
+    bashMap_[0x642] = bashSripts::GetChannelInfo;
+    
+    bashMap_[0xC01] = bashSripts::SetLANConfigurationParameters;
+    bashMap_[0xC02] = bashSripts::GetLANConfigurationParameters;
+    bashMap_[0xC20] = bashSripts::ActivateSOL;
+    bashMap_[0xC21] = bashSripts::SetSOLConfigurationParameters;
+    bashMap_[0xC22] = bashSripts::GetSOLConfigurationParameters;
+    
+}
 
 void MsgHandler::initCMD() {
+    initBash();
     // Chassis Commands
     GetChassisCapabCMD* chassisCapab = new GetChassisCapabCMD();
     GetChassisStatusCMD* chassisStatus = new GetChassisStatusCMD();
@@ -154,50 +203,57 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     for(int i = 0; i < MAX_DATA_SIZE; i++)
         respData[i] = 0x00;
     int respLen = 1;
+    respData[0] = INVALID_CMD;
     
     unsigned char netFn = message.getNetFn();
+    unsigned char cmd = message[COMMAND_INDEX];
+    
+    if (BashOK(netFn, cmd)){
     switch ( netFn ) {
         case 0x00:
-            if  ( ChassisCommands_.find(message[COMMAND_INDEX]) != ChassisCommands_.end() ) {
-                respLen = ChassisCommands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+            if  ( ChassisCommands_.find(cmd) != ChassisCommands_.end() ) {
+                respLen = ChassisCommands_[cmd]->process(message.data(), message.dataLength(), respData);
             }
             break;
 
         case 0x02:
-            if  ( BridgeCommands_.find(message[COMMAND_INDEX]) != BridgeCommands_.end() ) {
-                respLen = BridgeCommands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+            if  ( BridgeCommands_.find(cmd) != BridgeCommands_.end() ) {
+                respLen = BridgeCommands_[cmd]->process(message.data(), message.dataLength(), respData);
             }
             break;
         case 0x04:
-            if  ( SECommands_.find(message[COMMAND_INDEX]) != SECommands_.end() ) {
-                respLen = SECommands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+            if  ( SECommands_.find(cmd) != SECommands_.end() ) {
+                respLen = SECommands_[cmd]->process(message.data(), message.dataLength(), respData);
             }
             break;
         case 0x06:
-            if  ( AppCommands_.find(message[COMMAND_INDEX]) != AppCommands_.end() ) {
-                if (message[COMMAND_INDEX] == 0x3a)
+            if  ( AppCommands_.find(cmd) != AppCommands_.end() ) {
+                if (cmd == 0x3a)
                     respLen = AppCommands_[0x3a]->process(message.message(), message.length(), respData);
                 else
-                    respLen = AppCommands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+                    respLen = AppCommands_[cmd]->process(message.data(), message.dataLength(), respData);
             }
             break;
         case 0x08:
-            if  ( FirmCommands_.find(message[COMMAND_INDEX]) != FirmCommands_.end() ) {
-                respLen = FirmCommands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+            if  ( FirmCommands_.find(cmd) != FirmCommands_.end() ) {
+                respLen = FirmCommands_[cmd]->process(message.data(), message.dataLength(), respData);
             }
             break;
         case 0x0A:
-            if  ( StorageCommands_.find(message[COMMAND_INDEX]) != StorageCommands_.end() ) {
-                respLen = StorageCommands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+            if  ( StorageCommands_.find(cmd) != StorageCommands_.end() ) {
+                respLen = StorageCommands_[cmd]->process(message.data(), message.dataLength(), respData);
             }
             break;
         case 0x0C:
-            if  ( TransportCommands_.find(message[COMMAND_INDEX]) != TransportCommands_.end() ) {
-                respLen = TransportCommands_[message[COMMAND_INDEX]]->process(message.data(), message.dataLength(), respData);
+            if  ( TransportCommands_.find(cmd) != TransportCommands_.end() ) {
+                respLen = TransportCommands_[cmd]->process(message.data(), message.dataLength(), respData);
             }
             break;
         default:
-             respData[0] = UNKNOWN_ERROR;
+             respData[0] = INVALID_CMD;
+    }
+    } else {
+        respData[0] = UNKNOWN_ERROR;
     }
     message.serialize(respData, respLen, response);
 }
