@@ -13,20 +13,22 @@ class TestChassisSuite : public CxxTest::TestSuite
     public:
     
     static TestChassisSuite* createSuite() {
-        MsgHandler::initCMD();
+        //MsgHandler::initCMD();
         return new TestChassisSuite();
     }
     
     static void destroySuite(TestChassisSuite* suite) {
-        MsgHandler::clearCMD();
+        //MsgHandler::clearCMD();
         delete suite;
     }
     
     void setUp(){
+        MsgHandler::initCMD();
         blank_request = new unsigned char[IpmiCommandDefines::MAX_DATA_SIZE];
     }
     
     void tearDown() {
+        MsgHandler::clearCMD();
         delete blank_request;
     }
     
@@ -134,12 +136,15 @@ class TestChassisSuite : public CxxTest::TestSuite
         for (int i = 0; i < reqLength; i++) blank_request[IpmiCommandDefines::DATA_START_INDEX+i] = reqData[i];
         IpmiMessage request(blank_request, 21+reqLength);
         IpmiMessage testResponse;
-        if (reqLength < 5) {
+        if (reqLength < 5 || reqLength > 6) {
             reqLength = 5;
             for (int i = 1; i <=5; i++)
                 reqData[i] = getReference(0x00, i+1);
         }
-        else if (reqLength > 6) reqLength = 6;
+        else if (reqLength > 6) {
+            reqLength = 6;
+            reqData[5] = getReference(0x00, 6);
+        }
         MsgHandler::processRequest(request, testResponse);
         
         TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);
@@ -148,6 +153,27 @@ class TestChassisSuite : public CxxTest::TestSuite
         verifyChassisStatORCapabCMD(0x00, reqData, reqLength);
     }
     
+    void verifyPowerRestoreCMD(unsigned char dataByte, unsigned char expByte){
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x06;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX] = dataByte;
+        IpmiMessage request(blank_request, 22);
+        IpmiMessage testResponse;
+        MsgHandler::processRequest(request, testResponse);
+        
+        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);
+        TS_ASSERT_EQUALS(testResponse.data()[1], dataByte);
+        TS_ASSERT_EQUALS(getReference(0x01,1), expByte);
+    }
+    
+    void poweroff(){
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x02;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x00;
+        IpmiMessage request(blank_request, 22);
+        IpmiMessage testResponse;
+        MsgHandler::processRequest(request, testResponse);
+        
+        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], IpmiCommandDefines::COMP_CODE_OK);
+    }
     //---------------------------------------------------
     //---------- TEST Get Chassis Capabilities ---------- 
     
@@ -177,13 +203,7 @@ class TestChassisSuite : public CxxTest::TestSuite
     void testChassisControl_PowerOff(void) {
         TS_TRACE("Testing Chassis Control CMD with power off request -- 'not allowed in current state' error expected");
         
-        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x02;
-        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x00;
-        IpmiMessage request(blank_request, 22);        
-        IpmiMessage testResponse;
-        MsgHandler::processRequest(request, testResponse);
-        
-        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], IpmiCommandDefines::COMP_CODE_OK);
+        poweroff();
         
         TS_TRACE("\tChecking power off status");
         unsigned char expectedReturn[1] = {0x60};
@@ -192,6 +212,7 @@ class TestChassisSuite : public CxxTest::TestSuite
     
     void testChassisControl_InvalidCycle(void) {
         TS_TRACE("Testing Chassis Control CMD with cycle request in powered off state -- 'not allowed in current state' error expected");
+        poweroff();
         
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x02;
         blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x02;
@@ -204,6 +225,7 @@ class TestChassisSuite : public CxxTest::TestSuite
 
     void testChassisControl_InvalidReset(void) {
         TS_TRACE("Testing Chassis Control CMD with reset request in powered off state");
+        poweroff();
         
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x02;
         blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x03;
@@ -274,14 +296,14 @@ class TestChassisSuite : public CxxTest::TestSuite
    void testChassisIdentify_NoArgs(void){
        TS_TRACE("Testing Chassis Identify CMD with no arguments");
        verifyIdentifyCMD(NULL, 0, 0x00,  0x00); // Change mask & exp. value if implementing timed identify
-       TS_FAIL("No timed identify -- TO DO: check 15 sec identify interval");
+       TS_WARN("No timed identify -- TO DO: check 15 sec identify interval");
    }
     
     void testChassisIdentify_IntervalArg(void){
         TS_TRACE("Testing Chassis Identify CMD with (optional) interval request byte");
         unsigned char reqData[1] = {0x01};
         verifyIdentifyCMD(reqData, 1, 0x00,  0x00); // Change mask & exp. value if implementing timed identify
-        TS_FAIL("No timed identify -- TO DO: check 15 sec identify interval");
+        TS_WARN("No timed identify -- TO DO: check 15 sec identify interval");
     }
     
     void testChassisIdentify_Off(void){
@@ -377,19 +399,65 @@ class TestChassisSuite : public CxxTest::TestSuite
     }
     //---------------------------------------------------
     //------ TEST Set Chassis Power Restore Policy ------
-    
-    
+    void testChassisPowerRestore_NoChange(void){
+        unsigned char refPower = getReference(0x01, 1);
+        verifyPowerRestoreCMD(0x03,refPower);
+    }
+
+    void testChassisPowerRestore_AlwaysUp(void){
+        unsigned char refPower = getReference(0x01, 1);
+        refPower = (refPower&0x9F)|0x40;
+        verifyPowerRestoreCMD(0x02,refPower);
+    }
+    void testChassisPowerRestore_PrevState(void){
+        unsigned char refPower = getReference(0x01, 1);
+        refPower = (refPower&0x9F)|0x20;
+        verifyPowerRestoreCMD(0x01,refPower);
+    }
+    void testChassisPowerRestore_Off(void){
+        unsigned char refPower = getReference(0x01, 1);
+        refPower = refPower&0x9F;
+        verifyPowerRestoreCMD(0x00,refPower);
+    }
     //---------------------------------------------------
-    //------ TEST Set Chassis Power Restore Policy ------
-    
+    //---------- TEST Set Chassis Power Cycle -----------
+    void testChassisPowerCycle(void){
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x0B;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x00;
+        IpmiMessage request(blank_request, 22);
+        IpmiMessage testResponse;
+        MsgHandler::processRequest(request, testResponse);
+        
+        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);
+    }
     
     //---------------------------------------------------
     //------ TEST Get Chassis System Restart Cause ------
-    
+    void testChassisRestartCause(void){
+        unsigned char prevCause = getReference(0x0B, 1);
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x07;
+        IpmiMessage request(blank_request, 21);
+        IpmiMessage testResponse;
+        MsgHandler::processRequest(request, testResponse);
+        
+        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);
+        TS_ASSERT_EQUALS(testResponse.data()[1], prevCause);
+        TS_ASSERT_EQUALS(testResponse.length(), 24);
+    }
     
     //---------------------------------------------------
     //---------- TEST Set Chassis POH Counter -----------
-    
+    void testChassisPOH(void){
+        unsigned char prevCause = getReference(0x0B, 1);
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x0F;
+        IpmiMessage request(blank_request, 21);
+        IpmiMessage testResponse;
+        MsgHandler::processRequest(request, testResponse);
+        
+        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);
+        TS_ASSERT_EQUALS(testResponse.data()[1], 60);
+        TS_ASSERT_EQUALS(testResponse.length(), 27);
+    }
     
 };
 

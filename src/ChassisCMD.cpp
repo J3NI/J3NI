@@ -86,7 +86,7 @@ void GetChassisStatusCMD::setPowerState(int powerState)
 
 void GetChassisStatusCMD::setPowerPolicy(unsigned char policy)
 {
-    unsigned char mask = ( policy << 5 ) | 0x3F;
+    unsigned char mask = ( policy << 5 ) | 0x9F;
     curPowerState = curPowerState & mask;
 }
 
