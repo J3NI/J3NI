@@ -1,7 +1,7 @@
-#include <BashScriptDefines.h>
 #include <MsgHandler.h>
 #include <IpmiMessage.h>
 #include <IpmiCommandDefines.h>
+#include <BashScriptDefines.h>
 
 #include <ChassisCMD.h>
 #include <ChannelCMD.h>
@@ -34,40 +34,40 @@ bool MsgHandler::BashOK(unsigned char netFn, unsigned char  cmd){
     return true;
 }
 void MsgHandler::initBash(){
-    bashMap_[0x000] = bashSripts::GetChassisCapabilities;
-    bashMap_[0x001] = bashSripts::GetChassisStatus;
-    bashMap_[0x002] = bashSripts::ChassisControl;
-    bashMap_[0x003] = bashSripts::ChassisReset;
-    bashMap_[0x004] = bashSripts::ChassisIdentify;
-    bashMap_[0x00A] = bashSripts::ChassisFrontPanel;
-    bashMap_[0x005] = bashSripts::SetChassisCapabilities;
-    bashMap_[0x006] = bashSripts::SetPowerRestorePolicy;
-    bashMap_[0x00B] = bashSripts::SetChassisPowerCycle;
-    bashMap_[0x007] = bashSripts::GetChassisRestartCause;
-    bashMap_[0x00F] = bashSripts::GetPOH;
+    bashMap_[0x000] = BashSriptDefines::GetChassisCapabilities;
+    bashMap_[0x001] = BashSriptDefines::GetChassisStatus;
+    bashMap_[0x002] = BashSriptDefines::ChassisControl;
+    bashMap_[0x003] = BashSriptDefines::ChassisReset;
+    bashMap_[0x004] = BashSriptDefines::ChassisIdentify;
+    bashMap_[0x00A] = BashSriptDefines::ChassisFrontPanel;
+    bashMap_[0x005] = BashSriptDefines::SetChassisCapabilities;
+    bashMap_[0x006] = BashSriptDefines::SetPowerRestorePolicy;
+    bashMap_[0x00B] = BashSriptDefines::SetChassisPowerCycle;
+    bashMap_[0x007] = BashSriptDefines::GetChassisRestartCause;
+    bashMap_[0x00F] = BashSriptDefines::GetPOH;
     
-    bashMap_[0x410] = bashSripts::GetPEFCapabilities;
-    bashMap_[0x411] = bashSripts::ArmPEFPostponeTimer;
-    bashMap_[0x412] = bashSripts::SetPEFConfigurationParameters ;
-    bashMap_[0x413] = bashSripts::GetPEFConfigurationParameters ;
-    bashMap_[0x414] = bashSripts::SetLastProcessedEventID;
-    bashMap_[0x415] = bashSripts::GetLastProcessedEventID;
+    bashMap_[0x410] = BashSriptDefines::GetPEFCapabilities;
+    bashMap_[0x411] = BashSriptDefines::ArmPEFPostponeTimer;
+    bashMap_[0x412] = BashSriptDefines::SetPEFConfigurationParameters ;
+    bashMap_[0x413] = BashSriptDefines::GetPEFConfigurationParameters ;
+    bashMap_[0x414] = BashSriptDefines::SetLastProcessedEventID;
+    bashMap_[0x415] = BashSriptDefines::GetLastProcessedEventID;
     
-    bashMap_[0x638] = bashSripts::GetChannelAuthentication;
-    bashMap_[0x639] = bashSripts::GetSessionChallenge;
-    bashMap_[0x63a] = bashSripts::ActivateSession;
-    bashMap_[0x63b] = bashSripts::SetSessionPrivilegeLevel;
-    bashMap_[0x63c] = bashSripts::CloseSession;
-    bashMap_[0x63d] = bashSripts::GetSessionInfo;
-    bashMap_[0x640] = bashSripts::SetChannelAccess;
-    bashMap_[0x641] = bashSripts::GetChannelAccess;
-    bashMap_[0x642] = bashSripts::GetChannelInfo;
+    bashMap_[0x638] = BashSriptDefines::GetChannelAuthentication;
+    bashMap_[0x639] = BashSriptDefines::GetSessionChallenge;
+    bashMap_[0x63a] = BashSriptDefines::ActivateSession;
+    bashMap_[0x63b] = BashSriptDefines::SetSessionPrivilegeLevel;
+    bashMap_[0x63c] = BashSriptDefines::CloseSession;
+    bashMap_[0x63d] = BashSriptDefines::GetSessionInfo;
+    bashMap_[0x640] = BashSriptDefines::SetChannelAccess;
+    bashMap_[0x641] = BashSriptDefines::GetChannelAccess;
+    bashMap_[0x642] = BashSriptDefines::GetChannelInfo;
     
-    bashMap_[0xC01] = bashSripts::SetLANConfigurationParameters;
-    bashMap_[0xC02] = bashSripts::GetLANConfigurationParameters;
-    bashMap_[0xC20] = bashSripts::ActivateSOL;
-    bashMap_[0xC21] = bashSripts::SetSOLConfigurationParameters;
-    bashMap_[0xC22] = bashSripts::GetSOLConfigurationParameters;
+    bashMap_[0xC01] = BashSriptDefines::SetLANConfigurationParameters;
+    bashMap_[0xC02] = BashSriptDefines::GetLANConfigurationParameters;
+    bashMap_[0xC20] = BashSriptDefines::ActivateSOL;
+    bashMap_[0xC21] = BashSriptDefines::SetSOLConfigurationParameters;
+    bashMap_[0xC22] = BashSriptDefines::GetSOLConfigurationParameters;
     
 }
 
