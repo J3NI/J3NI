@@ -16,6 +16,7 @@
 // Local Includes
 #include <DaemonServer.h>
 #include <MsgHandler.h>
+#include <IpmiCommandDefines.h>
 
 using namespace std;
 
@@ -81,6 +82,7 @@ int main(int args, char** argv)
     while(1)
     {
         udpDaemon->receiveData();
+        sleep(IpmiCommandDefines::SERVER_WAIT_TIME);
     }
     MsgHandler::clearCMD();
    

@@ -42,8 +42,22 @@ public:
         TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], IpmiCommandDefines::COMP_CODE_OK);
         TS_ASSERT_EQUALS(testResponse.length(), 42);
     }
+    void testGetSessionChallenge_Auth_WrongName(void) {
+        TS_TRACE("Testing Get Session Challenge Command with pswd authentication requested");
+        TS_WARN("THIS TEST will FAIL until authentication is implemented");
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x39;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x04;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x41; //"A"
+        blank_request[IpmiCommandDefines::DATA_START_INDEX+2] = 0x6e; //"n"
+        blank_request[IpmiCommandDefines::DATA_START_INDEX+3] = 0x6e; //"n"
 
-    // Test Activate Session Command
+        IpmiMessage request(blank_request, 38);
+        IpmiMessage testResponse;
+        MsgHandler::processRequest(request, testResponse);
+        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], 0x81);
+        TS_ASSERT_EQUALS(testResponse.length(), 22);
+
+    }
 
     // Test Set Session Privilege Level
     void testSetSessionPrivilege(void) {
@@ -83,6 +97,27 @@ public:
         TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], 0x80);
         TS_ASSERT_EQUALS(testResponse.length(), 22);
     }
+    
+    // Test Activate Session Command
+    void testActivateSession_NoAuth(void){
+        TS_TRACE("Testing session activation with No auth");
+        TS_TRACE("Testing Set Session Privilege Level Command");
+        
+        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x3a;
+       for (int i = 0; i < 4; i++) blank_request[IpmiCommandDefines::SESSION_ID_INDEX+i] = IpmiCommandDefines::TEMP_SESSION_ID[i];
+        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x00;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x04;
+        for (int i = 0; i <16; i++) blank_request[IpmiCommandDefines::DATA_START_INDEX+2+i] = IpmiCommandDefines::CHALLENGE_STRING[i];
+        blank_request[IpmiCommandDefines::DATA_START_INDEX+20] = 0xFF;
+        IpmiMessage request(blank_request, 43);
+        IpmiMessage testResponse;
+        MsgHandler::processRequest(request, testResponse);
+        
+        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], 0x00);
+        TS_ASSERT_EQUALS(testResponse.length(), 32);
+    }
+     // TODO - Add Session test with Auth
+         
     // Test Close Session Command
     void testCloseSession(void) {
         TS_TRACE("Testing close Session Command");
@@ -105,6 +140,7 @@ public:
         MsgHandler::processRequest(request, testResponse);
         
         TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], IpmiCommandDefines::COMP_CODE_OK);
+
         TS_ASSERT_EQUALS(testResponse.length(), 28);
     }
 };
