@@ -1,10 +1,102 @@
-#include <MsgHandler.h>
+
 #include <SoLCMD.h>
-#include <IpmiCommandDefines.h>
-#include <fstream>
+
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
+
+GetSoLConfigCMD::GetSoLConfigCMD(GetChannelAuthCMD* getAuth)
+{
+    getAuthCMD = getAuth;
+
+    unsigned char setInProgress = 0x00;
+    SOLparamMap[0x00] = new ConfigParam(1, &setInProgress);
+
+    unsigned char SoLEnable = 0x01;
+    SOLparamMap[0x01] = new ConfigParam(1, &SoLEnable);
+    
+    unsigned char SoLAuth = 0x00;
+    SOLparamMap[0x02] = new ConfigParam(1, &SoLAuth);
+    
+    unsigned char charAccuIntvl_SendThresh[] = {0x05, 0x64};
+    SOLparamMap[0x03] = new ConfigParam(2, charAccuIntvl_SendThresh);
+
+    unsigned char solRetry_Intvl[] = {0x03, 0xFA};
+    SOLparamMap[0x04] = new ConfigParam(2, solRetry_Intvl);
+
+    unsigned char SoLBitRate_NV = 0x07;
+    SOLparamMap[0x05] = new ConfigParam(1, &SoLBitRate_NV);
+    
+    unsigned char SoLBitRate_V = 0x07;
+    SOLparamMap[0x06] = new ConfigParam(1, &SoLBitRate_V);
+    
+    unsigned char SoLChannel = 0x00;
+    SOLparamMap[0x07] = new ConfigParam(1, &SoLChannel, true);
+    
+    unsigned char SoLPort[] = {0x00, 0x00};
+    SOLparamMap[0x08] = new ConfigParam(2, SoLPort, true);
+}
+
+GetSoLConfigCMD::~GetSoLConfigCMD(){
+    ConfigParamMap::iterator it;
+    for(it = SOLparamMap.begin(); it != SOLparamMap.end(); it++)
+    {
+        delete it->second;
+    }
+    SOLparamMap.clear();
+}
+
+int GetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
+    log_file << "Get SoL Configuration Parameters Command" << std::endl;
+    response[0] = COMP_CODE_OK;
+    
+    unsigned char revMask = 0x80;
+    
+    if ((request[0]&getAuthCMD->getChannelNum())==getAuthCMD->getChannelNum()){
+        log_file << "Getting parameters for this channel" << std::endl;
+        if ((((request[0]&revMask) == revMask) && ((SOLparamMap[request[1]]->rev) > 0)) || (request[0]&revMask)==0){
+            if  ( SOLparamMap.find(request[1]) != SOLparamMap.end() ) {
+                response[1] = SOLparamMap[request[1]]->rev;
+                for(int i = 0; i < (SOLparamMap[request[1]]->length); i++){
+                    response[i+2] = SOLparamMap[request[1]]->data[i];
+                }
+                return 2+SOLparamMap[request[1]]->length;
+            }
+        } else {
+            log_file << "Requested parameter #"<<(int)request[1]<<" revision-only requested, but none are recorded"<<std::endl;
+        }        
+    }
+    
+    return 1;
+}
+
+bool GetSoLConfigCMD::setMap(unsigned char param, const unsigned char* reqData, int reqLength){
+    if  ( SOLparamMap.find(param) != SOLparamMap.end() ) {
+        SOLparamMap[param]->rev++;
+        for(int i = 0; i < reqLength; i++){
+            SOLparamMap[param]->data[i] = reqData[i+2];
+        }
+        return true;
+    }
+    return false;
+}
+
+
+SetSoLConfigCMD::SetSoLConfigCMD(GetSoLConfigCMD * SOLConfigCmd, GetChannelAuthCMD* getAuth):SOLConfigCMD(SOLConfigCmd), getAuthCMD(getAuth) {}
+
+int SetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
+{
+    log_file << "Set SoL Configuration Parameters Command" << std::endl;    
+    
+    if ((request[0]&getAuthCMD->getChannelNum())==getAuthCMD->getChannelNum()){
+        log_file << "Setting parameters for this channel" << std::endl;
+        if (SOLConfigCMD->setMap(request[1], request, (reqLength-2))) response[0] = COMP_CODE_OK;
+        else response[0] = PARAM_UNSUPPORTED;
+    }
+    
+    return 1;
+}
 
 int SoLActivatingCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
@@ -12,7 +104,7 @@ int SoLActivatingCMD::process( const unsigned char* request, int reqLength, unsi
     response[0] = COMP_CODE_OK;
     return 1;
 }
-
+/*
 GetSoLConfigCMD::GetSoLConfigCMD(): parameterRevision(0x00), setInProgress(0x00), SoLEnable(0x01), SoLAuth(0x00), charAccumulateIntervals(0x05), charSendThresh(0x64), SoLRetryCount(0x03), SoLRetryInterval(0xFA), SoLBitRate_NV(0x07), SoLBitRate_V(0x07), SoLChannel(0x00), SoLPort(0x0000) { }
 
 int GetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
@@ -235,5 +327,5 @@ int SetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsig
     }
     return 1;
 }
-
+*/
 

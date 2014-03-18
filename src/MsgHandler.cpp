@@ -122,9 +122,9 @@ void MsgHandler::initCMD() {
     SECommands_[0x15] = new GetLastProcEventIdCMD();
     
     //SoL Commands
-    GetSoLConfigCMD * solConfig = new GetSoLConfigCMD();
+    GetSoLConfigCMD * solConfig = new GetSoLConfigCMD(channelAuthCMD);
     TransportCommands_[0x20] = new SoLActivatingCMD();
-    TransportCommands_[0x21] = new SetSoLConfigCMD(solConfig);
+    TransportCommands_[0x21] = new SetSoLConfigCMD(solConfig, channelAuthCMD);
     TransportCommands_[0x22] = solConfig;
     
     //LAN Commands

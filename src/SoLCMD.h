@@ -2,12 +2,97 @@
 #define SOLCMD_H
 
 #include <I_Command.h>
+#include <ConfigParam.h>
+#include <IpmiCommandDefines.h>
+#include <fstream>
+#include <MsgHandler.h>
+#include <ChannelCMD.h>
+
+class GetChannelAuthCMD;
+
+class GetSoLConfigCMD:public I_Command
+{
+private:
+    GetChannelAuthCMD* getAuthCMD;
+
+    ConfigParamMap SOLparamMap;
+
+    //Parameter Revision NOTE: Most values are 0 before the first SET, however some default values are given based on intel/IBM setup guides
+    //[7-0] = 0x00 to begin with
+    //Default = 0x00
+
+    //Configuration Parameter Data
+    //Set in Progress (Volatile)
+    //[7-2] Reserved
+    //[1-0] = 00 (00 Complete, 01 In Progress, 10 OPTIONAL commit write, 11 Reserved)
+    //Default = 0x00
+    
+    //SoL Enable
+    //[7-1] Reserved
+    //[0] = 1 SOL Enable (1 = enable SOL payload, 0 = disable payload) 1 lets SOL activate to work
+    //Default = 0x01
+
+    //SoL Authentication
+    //[7] = 0 Force SOL Payload Encryption (0 = encryption dependent on remote console, 1 = if supported always encryption)
+    //[6] = 0 Force SOL Payload Authentication (0 = authentication controlled by remote software if encryption is being used authentication must be used, 1 = if support always authenticate SOL payload data)
+    //[5-4] Reserved
+    //[3-0] = 0x00 SOL Priviledge Level (0x2 User, 0x3 Operator, 0x4 Admin, 0x5 OEM, all others reserved)
+    //Default = 0x00
+
+    //Character Accumulate Interval & Character Send Threshold
+    //[7-0] = 5 Character Accumulate Interval (1-based 5ms increments)
+    //[7-0] = 100 Character Send Threshold(1-based sends data packet when this number of characters has been accepted) maybe default value could be more...
+    //Default = 0x05
+    //Default = 0x64
+
+    //SoL Retry
+    //[7-3] Reserved
+    //[2-0] = 3 Retry Count (1-based 0 = no retries after packet is transmitted, dropped if no ACK/NACK)
+    //[7-0] = 250 Retry Interval (1-based retry interval in 10ms increments)
+    //Default = 0x03
+    //Default = 0xFA
+
+    //SoL non-volatile bit rate (non-volatile)
+    //NOT SUPPORTED IF NO BMC SERIAL CONTROLLER THAN CAN BE POTENTIALLY CONFIGURED
+    //[7-4] Reserved
+    //[3-0] = 0x07 Bit Rate (0x00 Use present configuration, 0x6 9600 bps, 0x7 19.2 kbps, 0x8 38.4 kbps, 0x9 57.6 kpbs, 0xA 115.2 kpbs, all others reserved)
+    //Default = 0x07
+
+    //SoL volatile bit rate
+    //[7-4] Reserved
+    //[3-0] = 0x07
+    //Default = 0x07
+
+    //These 2 don't appear on the IPMI SoL Set Parameters when using IPMItool
+    //SoL Payload Channel (OPTIONAL)
+    //Default = 0x00
+    //SoL Payload Port Number (Read-only or Read/Write)
+    //Default = 0x0000
+
+public:
+    GetSoLConfigCMD(GetChannelAuthCMD* getAuth);
+    ~GetSoLConfigCMD();
+    bool setMap(unsigned char param, const unsigned char* reqData, int reqLength);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
+class SetSoLConfigCMD:public I_Command
+{
+private:
+    GetSoLConfigCMD * SOLConfigCMD;
+    GetChannelAuthCMD* getAuthCMD;
+    
+public:
+    SetSoLConfigCMD(GetSoLConfigCMD * SOLConfigCmd, GetChannelAuthCMD* getAut);
+    int process( const unsigned char* request, int reqLength, unsigned char* response );
+};
+
 
 class  SoLActivatingCMD:public I_Command{
 public:
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
-
+/*
 class GetSoLConfigCMD:public I_Command{
 private:
     //Parameter Revision NOTE: Most values are 0 before the first SET, however some default values are given based on intel/IBM setup guides
@@ -101,5 +186,5 @@ class SetSoLConfigCMD:public I_Command{
     SetSoLConfigCMD(GetSoLConfigCMD * SoLConfigCmd);
     int process( const unsigned char* request, int reqLength, unsigned char* response );
 };
-
+*/
 #endif
