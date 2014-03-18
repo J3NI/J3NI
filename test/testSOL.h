@@ -46,7 +46,7 @@ class TestSOLSuite : public CxxTest::TestSuite
         IpmiMessage request(blank_request, 25);
 	IpmiMessage testResponse;
         MsgHandler::processRequest(request, testResponse);
-        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK); //Can't even get this to not fail? 
+        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK); 
 	TS_ASSERT_EQUALS(testResponse.data()[1], 0x00) // Parameter Revision should be 0
 	TS_ASSERT_EQUALS(testResponse.data()[2], 0x07) // default bit rate value
     }
