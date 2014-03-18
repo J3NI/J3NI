@@ -43,11 +43,10 @@ class TestSOLSuite : public CxxTest::TestSuite
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x22;
 	    blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x01; //Channel 1 default
 	    blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x01; //Set in progress
-	TS_WARN("What the heck");
         IpmiMessage request(blank_request, 25);
-	IpmiMessage testResponse;
+	    IpmiMessage testResponse;
         MsgHandler::processRequest(request, testResponse);
-        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK); //Can't even get this to not fail? 
+        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);  
     }
 
 };
