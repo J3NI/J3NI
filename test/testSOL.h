@@ -38,17 +38,33 @@ class TestSOLSuite : public CxxTest::TestSuite
 
     //---------------------------------------------------
     //---------- TEST Get SOL Configuration    ---------- 
-    void testGetSoLConfig_SetInProgress(void) {
+    void testGetSoLConfig(void) {
         TS_TRACE("Testing Get SoL Configuration CMD -- default return expected");
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x22;
-	    blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x01; //Channel 1 default
-	    blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x01; //Set in progress
+	blank_request[IpmiCommandDefines::COMMAND_INDEX+1] = 0x01; //Channel 1 default
+	blank_request[IpmiCommandDefines::COMMAND_INDEX+2] = 0x05; //Check NV bit rate
         IpmiMessage request(blank_request, 25);
-	    IpmiMessage testResponse;
+	IpmiMessage testResponse;
         MsgHandler::processRequest(request, testResponse);
-        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);  
+        TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK); //Can't even get this to not fail? 
+	TS_ASSERT_EQUALS(testResponse.data()[1], 0x00) // Parameter Revision should be 0
+	TS_ASSERT_EQUALS(testResponse.data()[2], 0x07) // default bit rate value
     }
 
+    //---------------------------------------------------
+    //---------- TEST Set SOL Configuration    ---------- 
+    void testSetSolConfig(void){
+	TS_TRACE("Testing Set SoL Configuration CMD");
+	blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x21;
+	blank_request[IpmiCommandDefines::COMMAND_INDEX+1] = 0x01; //Channel 1 default
+	blank_request[IpmiCommandDefines::COMMAND_INDEX+2] = 0x05; //Change NV bit rate
+	blank_request[IpmiCommandDefines::COMMAND_INDEX+2] = 0x06; //change it to 6
+	IpmiMessage request(blank_request, 25);
+	IpmiMessage testResponse;
+	MsgHandler::processRequest(request, testResponse);
+	TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK); 
+	
+    }
 };
 
 #endif
