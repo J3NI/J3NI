@@ -20,7 +20,7 @@ def build(bld):
     source_files = ['DaemonServer.cpp', 'MsgHandler.cpp', 'IpmiMessage.cpp', 'ChannelCMD.cpp', 'ChassisCMD.cpp', 'PefCMD.cpp', 'SessionCMD.cpp', 'SoLCMD.cpp', 'LANCMD.cpp' ]
 
     if bld.options.test :
-        run_str = "../tools/cxxtest-4.3/bin/cxxtestgen --xunit-printer --xunit-file J3NI_test_run.xml -o  ../test/runner.cpp  ../test/testMessages.h ../test/testChassis.h ../test/testSession.h --include IpmiMessage.h --include BashScriptDefines.h --include IpmiCommandDefines.h --include MsgHandler.h --include DaemonServer.h --include ChannelCMD.h  --include ChassisCMD.h --include SessionCMD.h --include SoLCMD.h --include LANCMD.h --include PefCMD.h "
+        run_str = "../tools/cxxtest-4.3/bin/cxxtestgen --xunit-printer --xunit-file J3NI_test_run.xml -o  ../test/runner.cpp  ../test/testMessages.h ../test/testChassis.h ../test/testSession.h ../test/testSOL.h --include IpmiMessage.h --include BashScriptDefines.h --include IpmiCommandDefines.h --include MsgHandler.h --include DaemonServer.h --include ChannelCMD.h  --include ChassisCMD.h --include SessionCMD.h --include SoLCMD.h --include LANCMD.h --include PefCMD.h "
         bld.exec_command(run_str)
         source_files.append('../test/runner.cpp')
         exec_target = 'TestJ3NI'
