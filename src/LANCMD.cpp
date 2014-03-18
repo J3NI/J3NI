@@ -73,8 +73,11 @@ int GetLANConfigCMD::process( const unsigned char* request, int reqLength, unsig
     response[0] = COMP_CODE_OK;
     
     unsigned char revMask = 0x80;
+    unsigned char channelMask = 0xF;
     
-    if ((request[0]&getAuthCMD->getChannelNum())==getAuthCMD->getChannelNum()){
+    // The following checks that the requested channel is the currently active one
+    // Remove the check if command should treat all channels as one
+    if ((request[0]&channelMask)==getAuthCMD->getChannelNum()){
         log_file << "Getting parameters for this channel" << std::endl;
         if ((((request[0]&revMask) == revMask) && ((LANparamMap[request[1]]->rev) > 0)) || (request[0]&revMask)==0){
             if  ( LANparamMap.find(request[1]) != LANparamMap.end() ) {
@@ -87,6 +90,8 @@ int GetLANConfigCMD::process( const unsigned char* request, int reqLength, unsig
         } else {
             log_file << "Requested parameter #"<<(int)request[1]<<" revision-only requested, but none are recorded"<<std::endl;
         }        
+    } else {
+        response[0] = INVALID_DEVICE;
     }
     
     return 1;
@@ -109,11 +114,16 @@ SetLANConfigCMD::SetLANConfigCMD(GetLANConfigCMD * LANConfigCmd, GetChannelAuthC
 int SetLANConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
     log_file << "Set LAN Configuration Parameters Command" << std::endl;    
+    unsigned char channelMask = 0xF;
     
-    if ((request[0]&getAuthCMD->getChannelNum())==getAuthCMD->getChannelNum()){
+    // The following checks that the requested channel is the currently active one
+    // Remove the check if command should treat all channels as one
+    if ((request[0]&channelMask)==getAuthCMD->getChannelNum()){
         log_file << "Setting parameters for this channel" << std::endl;
         if (LANConfigCMD->setMap(request[1], request, (reqLength-2))) response[0] = COMP_CODE_OK;
         else response[0] = PARAM_UNSUPPORTED;
+    } else {
+        response[0] = INVALID_DEVICE;
     }
     
     return 1;
