@@ -49,11 +49,11 @@ int GetChannelInfoCMD::process(const unsigned char* request, int reqLength, unsi
     response[2] = 0x04;	// Channel Medium Type: 802.3 LAN
     response[3] = 0x01;	// Channel Protocol Type: IPMB-1.0, serial/modem Basic Mode, and LAN
     response[4] = 0x81;	// Session support: multi-session, # sessions activated on channel = 1
-    response[5] = 0xF2; 	//IPMI Enterprise Number = 0xF21B00
+    response[5] = 0xF2; // IPMI Enterprise Number = 0xF21B00
     response[6] = 0x1B;
     response[7] = 0x00;
-    response[9] = 0xFF; // Auxiliary Chan Info = 0xFFFF (no interrupt/unspecified)
-    response[10] = 0xFF;
+    response[8] = 0xFF; // Auxiliary Chan Info = 0xFFFF (no interrupt/unspecified)
+    response[9] = 0xFF;
     return 10;
 }
 

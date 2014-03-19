@@ -2,6 +2,21 @@
 #define MSGHANDLER_H
 
 #include <map>
+#include <stddef.h>
+
+#include <IpmiMessage.h>
+#include <IpmiCommandDefines.h>
+#include <BashScriptDefines.h>
+
+#include <ChassisCMD.h>
+#include <ChannelCMD.h>
+#include <LANCMD.h>
+#include <PefCMD.h>
+#include <SessionCMD.h>
+#include <SoLCMD.h>
+
+#include <fstream>
+#include <stdlib.h>
 
 class I_Command;
 class IpmiMessage;
@@ -24,7 +39,11 @@ public:
     static bool BashOK(unsigned char netFn, unsigned char  cmd);
     
     static void initBash();
+<<<<<<< HEAD
     static void initCMD(const char* user = NULL);
+=======
+    static void initCMD(const char* user=NULL);
+>>>>>>> FETCH_HEAD
     static void clearCMD();
     
     static bool isPing(const IpmiMessage& message);
