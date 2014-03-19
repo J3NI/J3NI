@@ -205,18 +205,14 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     int respLen = 1;
     respData[0] = INVALID_CMD;
     
-    if(!message.validMessage())
-    {
-        respData[0] = UNKNOWN_ERROR;
-        message.serialize(respData, 1, response);
-        delete[] respData;
-        return;
-    }
-    
     unsigned char netFn = message.getNetFn();
     unsigned char cmd = message.getCommand();
     
-    if (BashOK(netFn, cmd)){
+    if(!message.validateAuthCode())
+    {
+        respData[0] = SECURITY_ERROR;
+    }
+    else if (BashOK(netFn, cmd)){
     switch ( netFn ) {
         case 0x00:
             if  ( ChassisCommands_.find(cmd) != ChassisCommands_.end() ) {

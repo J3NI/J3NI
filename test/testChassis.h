@@ -120,7 +120,7 @@ class TestChassisSuite : public CxxTest::TestSuite
         MsgHandler::processRequest(request2, testResponse);
         if (testResponse.length() == 26) {
             TS_TRACE("\tStatus CMD supports Front panel info. Checking byte 5");
-            if (referenceFrontPanel&mask == mask) {
+            if ((referenceFrontPanel&mask) == mask) {
                 if (reqData == 0x00) {
                     TS_ASSERT_EQUALS(testResponse.data()[4]&referenceFrontPanel, referenceFrontPanel&0xF0);
                 } else TS_ASSERT_EQUALS(testResponse.data()[4]&referenceFrontPanel, referenceFrontPanel|reqData);

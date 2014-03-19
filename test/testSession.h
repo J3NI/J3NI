@@ -20,13 +20,13 @@ public:
     }
     
     void setUp(){
-                MsgHandler::initCMD();
+        MsgHandler::initCMD();
         blank_request = new unsigned char[IpmiCommandDefines::MAX_DATA_SIZE];
         blank_request[IpmiCommandDefines::NET_FN_INDEX] = 0x18;
     }
     
     void tearDown() {
-                MsgHandler::clearCMD();
+        MsgHandler::clearCMD();
         delete blank_request;
     }
     
@@ -43,7 +43,7 @@ public:
         TS_ASSERT_EQUALS(testResponse.length(), 42);
     }
     void testGetSessionChallenge_Auth_WrongName(void) {
-        TS_TRACE("Testing Get Session Challenge Command with pswd authentication requested");
+        TS_TRACE("Testing Get Session Challenge Command with user name authentication requested");
         TS_WARN("THIS TEST will FAIL until authentication is implemented");
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x39;
         blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x04;
@@ -54,7 +54,8 @@ public:
         IpmiMessage request(blank_request, 38);
         IpmiMessage testResponse;
         MsgHandler::processRequest(request, testResponse);
-        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], 0x81);
+        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX],
+                         IpmiCommandDefines::INVALID_USER_NAME);
         TS_ASSERT_EQUALS(testResponse.length(), 22);
 
     }

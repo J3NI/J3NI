@@ -43,7 +43,8 @@ public:
     bool serialize(const unsigned char* data, unsigned int dataSize,
                    IpmiMessage& responseMsg) const;
     
-    bool validMessage() const;
+    bool validateSession() const;
+    bool validateAuthCode() const;
     
     unsigned char getCommand() const;
     unsigned char getNetFn() const;
@@ -66,7 +67,6 @@ private:
     
     bool validSequenceNumber() const;
     bool isSessionlessCommand() const;
-    bool validateAuthCode() const;
     
     unsigned char computeChecksum(unsigned char* bytes, unsigned int length) const;
 };

@@ -46,12 +46,15 @@ namespace IpmiCommandDefines
     const unsigned int COMMAND_INDEX            = 19;
     const unsigned int DATA_START_INDEX         = 20;
     
+    const unsigned int AUTH_CODE_LENGTH         = 16;
     const unsigned int MESSAGE_HEADER_LENGTH    = 21;
     
     const unsigned int COMP_CODE_OK             = 0x00;
     const unsigned int CANNOT_EXEC_IN_CUR_STATE = 0xD5;
     const unsigned int CANNOT_EXEC_DISABLED     = 0xD6;
     const unsigned int INVALID_SESSION_ID       = 0x85;
+    const unsigned int INVALID_USER_NAME        = 0X81;
+    const unsigned int NULL_USER_NAME           = 0X82;
     const unsigned int PRIV_LVL_UNAVAILABLE     = 0x80;
     const unsigned int PARAM_UNSUPPORTED        = 0x80;
     const unsigned int SET_IN_PROGRESS_FAIL     = 0x81;
@@ -60,7 +63,8 @@ namespace IpmiCommandDefines
     const unsigned int ACC_MODE_UNSUPPORTED     = 0x83;
     const unsigned int UNKNOWN_ERROR            = 0xFF;
     const unsigned int INVALID_CMD              = 0xC1;
-    const unsigned int INVALID_DEVICE           = 0xCD;
+    const unsigned int INVALID_DEVICE           = 0xCD; 
+    const unsigned int SECURITY_ERROR           = 0xD4;
     
     
     const unsigned int MAX_DATA_SIZE            = 42;

@@ -61,7 +61,7 @@ bool IpmiMessage::setMessage(const unsigned char* msg, unsigned int msgLength)
     
     if(message_[AUTH_TYPE_INDEX] == 0x04)
     {
-        authCodeSize_ = 16;
+        authCodeSize_ = AUTH_CODE_LENGTH;
     }
     
     if(msgLength_ < MESSAGE_HEADER_LENGTH + authCodeSize_)
@@ -141,14 +141,25 @@ bool IpmiMessage::serialize(const unsigned char* data, unsigned int dataSize,
     return responseMsg.setMessage(response, responseSize);
 }
 
-bool IpmiMessage::validMessage() const
+bool IpmiMessage::validateSession() const
 {
-    if(!validateAuthCode()) return false;
-    
     if(msgSessionId_ == 0u)
         return isSessionlessCommand();
     else
         return ((sessionId_ == msgSessionId_) && validSequenceNumber());
+}
+
+bool IpmiMessage::validateAuthCode() const
+{
+    for(int i = 0; i < authCodeSize_; i++)
+    {
+        if(message_[AUTH_CODE_INDEX + i] != password_[i])
+        {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 unsigned char IpmiMessage::getCommand() const
@@ -290,19 +301,6 @@ bool IpmiMessage::isSessionlessCommand() const
             break;
     }
     return retVal;
-}
-
-bool IpmiMessage::validateAuthCode() const
-{
-    for(int i = 0; i < authCodeSize_; i++)
-    {
-        if(message_[AUTH_CODE_INDEX + i] != password_[i])
-        {
-            return false;
-        }
-    }
-    
-    return true;
 }
 
 unsigned char IpmiMessage::computeChecksum(unsigned char* bytes,

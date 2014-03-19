@@ -34,13 +34,13 @@ unsigned char GetSessionChalCMD::verifyUserName(const unsigned char* uname) cons
     if(userName_ == NULL) return COMP_CODE_OK;
     if(uname[0] == 0x00)
     {
-        return 0x82;
+        return NULL_USER_NAME;
     }
     for(int i = 0; i < 16; i++)
     {
         if(uname[i] != userName_[i])
         {
-            return 0x81;
+            return INVALID_USER_NAME;
         }
     }
     return COMP_CODE_OK;
@@ -53,6 +53,10 @@ int GetSessionChalCMD::process(const unsigned char* request, int reqLength, unsi
     if(userName_ != NULL && request[0] == 0x04 && reqLength >= 17)
     {
         response[0] = verifyUserName(request + 1);
+        if(response[0] != COMP_CODE_OK)
+        {
+            return 1;
+        }
     }
     
     IpmiMessage::setSessionId(TEMP_SESSION_ID, 4);

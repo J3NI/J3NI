@@ -128,6 +128,11 @@ void DaemonServer::receiveData()
         IpmiMessage response;
         if (MsgHandler::isPing(recievedMsg))
             MsgHandler::pong(recievedMsg, response);
+        else if(!recievedMsg.validateSession())
+        {
+            delete [] buf;
+            return;
+        }
         else
             MsgHandler::processRequest(recievedMsg, response);
       
