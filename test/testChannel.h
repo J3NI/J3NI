@@ -33,7 +33,7 @@ class TestCHANNELSuite : public CxxTest::TestSuite
     }
 
     //---------- TEST Get Channel Authentication Capabilities   ---------- 
-    void testGetLANConfig(void) {
+    void testGetChannelAuthCapCMD(void) {
         TS_TRACE("Testing Get Channel Authentication Capabilities CMD");
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x38;
 	blank_request[IpmiCommandDefines::COMMAND_INDEX+1] = 0x01; //Channel 1 default
@@ -73,7 +73,7 @@ class TestCHANNELSuite : public CxxTest::TestSuite
 
     //void testSetChannelAccessCMD(void) {}
     
-    //void test
+    //void testGetChannelAccessCMD(void){}
 
 };
 
