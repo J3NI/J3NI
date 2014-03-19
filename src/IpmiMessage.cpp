@@ -22,13 +22,18 @@ uint32_t IpmiMessage::inboundSequenceNumber_ = 0;
 uint32_t IpmiMessage::outboundSequenceNumber_ = 0;
 uint32_t IpmiMessage::sessionId_ = 0;
 
+unsigned char IpmiMessage::password_[16] = {0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
 IpmiMessage::IpmiMessage()
-:   msgLength_(0), message_(NULL), dataLength_(0), data_(NULL)
+:   msgLength_(0), message_(NULL), dataLength_(0), data_(NULL),
+    authCodeSize_(0), command_(0x00)
 {
 }
 
 IpmiMessage::IpmiMessage(const unsigned char* msg, unsigned int msgSize)
-:   msgLength_(0), message_(NULL), dataLength_(0), data_(NULL)
+:   msgLength_(0), message_(NULL), dataLength_(0), data_(NULL),
+    authCodeSize_(0), command_(0x00)
 {
     setMessage(msg, msgSize);
 }
@@ -53,30 +58,36 @@ bool IpmiMessage::setMessage(const unsigned char* msg, unsigned int msgLength)
     {
         message_[i] = msg[i];
     }
-  
-    if(msgLength_ < MESSAGE_HEADER_LENGTH)
+    
+    if(message_[AUTH_TYPE_INDEX] == 0x04)
+    {
+        authCodeSize_ = 16;
+    }
+    
+    if(msgLength_ < MESSAGE_HEADER_LENGTH + authCodeSize_)
     {
         return true;
     }
     
     updateSessionInfo();
     
-    command_ = message_[COMMAND_INDEX];
-    
-    dataLength_ = msgLength_ - (DATA_START_INDEX + 1);
+    command_ = message_[COMMAND_INDEX + authCodeSize_];
+  
+    dataLength_ = msgLength_ - (DATA_START_INDEX + authCodeSize_ + 1);
     data_ = new unsigned char[dataLength_];
     for (int i = 0; i < dataLength_; i++)
     {
-        data_[i] = message_[i + DATA_START_INDEX];
+        data_[i] = message_[i + DATA_START_INDEX + authCodeSize_];
     }
     
     return true;
 }
 
+
 bool IpmiMessage::serialize(const unsigned char* data, unsigned int dataSize,
                             IpmiMessage& responseMsg) const
 {
-    unsigned int responseSize = dataSize + MESSAGE_HEADER_LENGTH;
+    unsigned int responseSize = dataSize + MESSAGE_HEADER_LENGTH + authCodeSize_;
     unsigned char* response = new unsigned char[responseSize];
     
     for(int i = 0; i < 4; i++)
@@ -94,32 +105,36 @@ bool IpmiMessage::serialize(const unsigned char* data, unsigned int dataSize,
     }
     
     response[AUTH_TYPE_INDEX] = message_[AUTH_TYPE_INDEX];
+    for(int i = 0; i < authCodeSize_; i++)
+    {
+        response[AUTH_CODE_INDEX + i] = password_[i];
+    }
     
-    response[LENGTH_INDEX] = (0x07 + dataSize) & 0xFF;
-    response[DEST_ADDRESS_INDEX] = message_[SOURCE_ADDRESS_INDEX];
+    response[LENGTH_INDEX + authCodeSize_] = (0x07 + dataSize) & 0xFF;
+    response[DEST_ADDRESS_INDEX + authCodeSize_] = message_[SOURCE_ADDRESS_INDEX + authCodeSize_];
     
-    unsigned char netFn = message_[NET_FN_INDEX] & NET_FN_MASK;
+    unsigned char netFn = message_[NET_FN_INDEX + authCodeSize_] & NET_FN_MASK;
     netFn = (netFn + 0x04) & NET_FN_MASK;
-    unsigned char sourceLun = message_[REQUEST_SEQUENCE_INDEX] & LUN_MASK;
-    response[NET_FN_INDEX] = netFn | sourceLun;
+    unsigned char sourceLun = message_[REQUEST_SEQUENCE_INDEX + authCodeSize_] & LUN_MASK;
+    response[NET_FN_INDEX + authCodeSize_] = netFn | sourceLun;
     
-    unsigned char* checksumStart = response + DEST_ADDRESS_INDEX;
+    unsigned char* checksumStart = response + DEST_ADDRESS_INDEX + authCodeSize_;
     unsigned int checksumLength = 2u;
-    response[CHECKSUM_INDEX] = computeChecksum(checksumStart, checksumLength);
+    response[CHECKSUM_INDEX + authCodeSize_] = computeChecksum(checksumStart, checksumLength);
 
-    response[SOURCE_ADDRESS_INDEX] = message_[DEST_ADDRESS_INDEX];
+    response[SOURCE_ADDRESS_INDEX + authCodeSize_] = message_[DEST_ADDRESS_INDEX + authCodeSize_];
     
-    unsigned char sequence = message_[REQUEST_SEQUENCE_INDEX] & SEQUENCE_MASK;
-    unsigned char responseLun = message_[NET_FN_INDEX] & LUN_MASK;
-    response[REQUEST_SEQUENCE_INDEX] = sequence | responseLun;
-    response[COMMAND_INDEX] = command_;
+    unsigned char sequence = message_[REQUEST_SEQUENCE_INDEX + authCodeSize_] & SEQUENCE_MASK;
+    unsigned char responseLun = message_[NET_FN_INDEX + authCodeSize_] & LUN_MASK;
+    response[REQUEST_SEQUENCE_INDEX + authCodeSize_] = sequence | responseLun;
+    response[COMMAND_INDEX + authCodeSize_] = command_;
     
     for(int i = 0; i < dataSize; i++)
     {
-        response[DATA_START_INDEX + i] = data[i];
+        response[DATA_START_INDEX + i + authCodeSize_] = data[i];
     }
     
-    checksumStart = response + SOURCE_ADDRESS_INDEX;
+    checksumStart = response + SOURCE_ADDRESS_INDEX + authCodeSize_;
     checksumLength = dataSize + 3u;
     response[responseSize - 1] = computeChecksum(checksumStart, checksumLength);
     
@@ -128,16 +143,23 @@ bool IpmiMessage::serialize(const unsigned char* data, unsigned int dataSize,
 
 bool IpmiMessage::validMessage() const
 {
+    if(!validateAuthCode()) return false;
+    
     if(msgSessionId_ == 0u)
         return isSessionlessCommand();
     else
         return ((sessionId_ == msgSessionId_) && validSequenceNumber());
 }
 
+unsigned char IpmiMessage::getCommand() const
+{
+    return command_;
+}
+
 
 unsigned char IpmiMessage::getNetFn() const
 {
-    return ((message_[NET_FN_INDEX] & NET_FN_MASK) >> 2);
+    return ((message_[NET_FN_INDEX + authCodeSize_] & NET_FN_MASK) >> 2);
 }
 
 const unsigned char* IpmiMessage::message() const
@@ -184,6 +206,16 @@ void IpmiMessage::setSessionId(const unsigned char* sessionId,
     sessionId_ = sessionId_ | sessionId[3];
 }
 
+void IpmiMessage::setPassword(const char* password)
+{
+    if(password != NULL)
+    {
+        for(int i = 0; (i < 16) && (password[i] != '\0'); i++)
+        {
+            password_[i] = password[i];
+        }
+    }
+}
 
 
 void IpmiMessage::clearMessage()
@@ -258,6 +290,19 @@ bool IpmiMessage::isSessionlessCommand() const
             break;
     }
     return retVal;
+}
+
+bool IpmiMessage::validateAuthCode() const
+{
+    for(int i = 0; i < authCodeSize_; i++)
+    {
+        if(message_[AUTH_CODE_INDEX + i] != password_[i])
+        {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 unsigned char IpmiMessage::computeChecksum(unsigned char* bytes,

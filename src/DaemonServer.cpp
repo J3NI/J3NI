@@ -29,18 +29,11 @@ extern std::ofstream log_file;
 
 const int DaemonServer::BUF_SIZE = 2048;
 
-DaemonServer::DaemonServer()
-    :   port(-1), username(NULL), password(NULL)
+DaemonServer::DaemonServer() : port(-1)
 {
 }
 
-DaemonServer::DaemonServer(int port)
-    :   port(port), username(NULL), password(NULL)
-{
-}
-
-DaemonServer::DaemonServer(int port, char* uname, char* pass)
-    :   port(port), username(uname), password(pass)
+DaemonServer::DaemonServer(int port) : port(port)
 {
 }
 
@@ -135,11 +128,6 @@ void DaemonServer::receiveData()
         IpmiMessage response;
         if (MsgHandler::isPing(recievedMsg))
             MsgHandler::pong(recievedMsg, response);
-        else if(!validateMessage(recievedMsg))
-        {
-            delete [] buf;
-            return;
-        }
         else
             MsgHandler::processRequest(recievedMsg, response);
       
@@ -170,13 +158,5 @@ void DaemonServer::logMessage(const IpmiMessage& msg)
     log_file << std::dec << std::setfill(' ') <<  std::endl << std::flush;
 }
 
-bool DaemonServer::validateMessage(const IpmiMessage& msg)
-{
-    if(!msg.validMessage())
-    {
-        return false;
-    }
-    return true;
-}
 
 

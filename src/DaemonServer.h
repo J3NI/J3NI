@@ -15,8 +15,6 @@ class DaemonServer {
 private:
     
     int port;
-    char* username;
-    char* password;
     pid_t pid, sid;
     
     struct sockaddr_in localAddr;   // Local address
@@ -31,7 +29,6 @@ public:
     
    DaemonServer();
    DaemonServer(int port);
-   DaemonServer(int port, char* uname, char* pass);
    
    ~DaemonServer(){};
     

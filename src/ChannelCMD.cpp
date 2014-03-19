@@ -14,7 +14,7 @@ int GetChannelAuthCMD::process(const unsigned char* request, int reqLength, unsi
     
     response[0] = COMP_CODE_OK;
     response[1] = channelNum; //Channel Number
-    response[2] = 0x01; //Authentication supported <------ CHANGE TO 0x11 WHEN UNAME/PSWD SUPPORTED!!!
+    response[2] = 0x11; //Authentication supported 
     response[3] = 0x1f; // 0001 1111
     // [7:6]  00 	reserved
     // [5]	  0 	KG status (applies to v2.0/RMCP+ RAKP Auth only). Otherwise - reserved

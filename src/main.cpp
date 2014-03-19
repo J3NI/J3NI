@@ -17,6 +17,7 @@
 #include <DaemonServer.h>
 #include <MsgHandler.h>
 #include <IpmiCommandDefines.h>
+#include <IpmiMessage.h>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ int main(int args, char** argv)
     char* user = NULL;
     char* password = NULL;
    
-   DaemonServer* udpDaemon = NULL;
+    DaemonServer* udpDaemon = NULL;
 
     if(args==1){
     }
@@ -71,13 +72,14 @@ int main(int args, char** argv)
 	    exit(EXIT_FAILURE);
     }
     
-    udpDaemon = new DaemonServer(portnum, user, password);
+    IpmiMessage::setPassword(password);
+    MsgHandler::initCMD(user);
+    
+    udpDaemon = new DaemonServer(portnum);
 
     udpDaemon->startDaemon();
     
     udpDaemon->startServer();
-    
-    MsgHandler::initCMD();
     
     while(1)
     {

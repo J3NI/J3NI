@@ -24,7 +24,7 @@ public:
     static bool BashOK(unsigned char netFn, unsigned char  cmd);
     
     static void initBash();
-    static void initCMD();
+    static void initCMD(const char* user);
     static void clearCMD();
     
     static bool isPing(const IpmiMessage& message);

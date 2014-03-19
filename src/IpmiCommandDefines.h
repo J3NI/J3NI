@@ -35,7 +35,9 @@ namespace IpmiCommandDefines
     const unsigned int AUTH_TYPE_INDEX          = 4;
     const unsigned int SESSION_SEQ_NUM_INDEX    = 5;
     const unsigned int SESSION_ID_INDEX         = 9;
+    
     const unsigned int LENGTH_INDEX             = 13;
+    const unsigned int AUTH_CODE_INDEX          = 13;
     const unsigned int DEST_ADDRESS_INDEX       = 14;
     const unsigned int NET_FN_INDEX             = 15;
     const unsigned int CHECKSUM_INDEX           = 16;

@@ -27,6 +27,9 @@ private:
     static uint32_t outboundSequenceNumber_;
     static uint32_t sessionId_;
     
+    static unsigned char password_[16];
+    
+    unsigned int authCodeSize_;
     unsigned char command_;
     
 public:
@@ -42,6 +45,7 @@ public:
     
     bool validMessage() const;
     
+    unsigned char getCommand() const;
     unsigned char getNetFn() const;
 
     const unsigned char* message() const;
@@ -54,6 +58,7 @@ public:
     const unsigned char& operator[](const int index) const;
     
     static void setSessionId(const unsigned char* sessionId, unsigned int size);
+    static void setPassword(const char* password);
     
 private:
     void clearMessage();
@@ -61,6 +66,7 @@ private:
     
     bool validSequenceNumber() const;
     bool isSessionlessCommand() const;
+    bool validateAuthCode() const;
     
     unsigned char computeChecksum(unsigned char* bytes, unsigned int length) const;
 };

@@ -71,7 +71,7 @@ void MsgHandler::initBash(){
     
 }
 
-void MsgHandler::initCMD() {
+void MsgHandler::initCMD(const char* user) {
     initBash();
     // Chassis Commands
     GetChassisCapabCMD* chassisCapab = new GetChassisCapabCMD();
@@ -105,7 +105,7 @@ void MsgHandler::initCMD() {
 
     //Session Commands
     SetSessionPrivCMD* sessionPrivCMD = new SetSessionPrivCMD();
-    AppCommands_[0x39] = new GetSessionChalCMD();
+    AppCommands_[0x39] = new GetSessionChalCMD(user);
     AppCommands_[0x3a] = new ActSessionCMD(sessionPrivCMD);
     AppCommands_[0x3b] = sessionPrivCMD;
     AppCommands_[0x3c] = new CloseSessionCMD();
@@ -205,8 +205,16 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     int respLen = 1;
     respData[0] = INVALID_CMD;
     
+    if(!message.validMessage())
+    {
+        respData[0] = UNKNOWN_ERROR;
+        message.serialize(respData, 1, response);
+        delete[] respData;
+        return;
+    }
+    
     unsigned char netFn = message.getNetFn();
-    unsigned char cmd = message[COMMAND_INDEX];
+    unsigned char cmd = message.getCommand();
     
     if (BashOK(netFn, cmd)){
     switch ( netFn ) {
@@ -228,9 +236,9 @@ void MsgHandler::processRequest(const IpmiMessage& message,
             break;
         case 0x06:
             if  ( AppCommands_.find(cmd) != AppCommands_.end() ) {
-                if (cmd == 0x3a)
+                if (cmd == 0x3a){
                     respLen = AppCommands_[0x3a]->process(message.message(), message.length(), respData);
-                else
+                }else
                     respLen = AppCommands_[cmd]->process(message.data(), message.dataLength(), respData);
             }
             break;
@@ -255,7 +263,9 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     } else {
         respData[0] = UNKNOWN_ERROR;
     }
+    
     message.serialize(respData, respLen, response);
+    delete[] respData;
 }
 
 

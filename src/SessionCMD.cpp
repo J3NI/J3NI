@@ -7,12 +7,55 @@
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
 
+GetSessionChalCMD::GetSessionChalCMD(const char* userName)
+    :   userName_(NULL)
+{
+    if(userName != NULL)
+    {
+        userName_ = new unsigned char[16];
+        for(int i = 0; i < 16; i++)
+        {
+            userName_[i] = 0x00;
+        }
+        for(int i = 0; (i < 16) && (userName[i] != 0x00); i++)
+        {
+            userName_[i] = userName[i];
+        }
+    }
+}
+
+GetSessionChalCMD::~GetSessionChalCMD()
+{
+    if(userName_ != NULL) delete[] userName_;
+}
+
+unsigned char GetSessionChalCMD::verifyUserName(const unsigned char* uname) const
+{
+    if(userName_ == NULL) return COMP_CODE_OK;
+    if(uname[0] == 0x00)
+    {
+        return 0x82;
+    }
+    for(int i = 0; i < 16; i++)
+    {
+        if(uname[i] != userName_[i])
+        {
+            return 0x81;
+        }
+    }
+    return COMP_CODE_OK;
+}
+
 int GetSessionChalCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
     log_file << "Processing Get Session Challenge CMD" << std::endl;
+    
+    response[0] = COMP_CODE_OK;
+    if(userName_ != NULL && request[0] == 0x04 && reqLength >= 17)
+    {
+        response[0] = verifyUserName(request + 1);
+    }
+    
     IpmiMessage::setSessionId(TEMP_SESSION_ID, 4);
-    
-    response[0] =  COMP_CODE_OK ;
-    
     for (int i = 0; i < 4; i++) {
         response[i+1] = TEMP_SESSION_ID[i];
     }
@@ -34,8 +77,10 @@ bool ActSessionCMD::verifyTempID(const unsigned char* data){
 }
 
 bool ActSessionCMD::verifyChalString(const unsigned char* data){
+    int authDataSize = 0;
+    if(data[AUTH_TYPE_INDEX] != 0x0) authDataSize = 16;
     for(int i = 0; i < 16; i++) {
-        if (data[DATA_START_INDEX+i+2] != CHALLENGE_STRING[i]) return false;
+        if (data[DATA_START_INDEX+i+2+authDataSize] != CHALLENGE_STRING[i]) return false;
     }
     return true;
 }
@@ -74,12 +119,12 @@ unsigned char SetSessionPrivCMD::getPrivLvl(){
     return privLvl;
 }
 
-int SetSessionPrivCMD::setPrivLvl(const unsigned char newLvl){
+bool SetSessionPrivCMD::setPrivLvl(const unsigned char newLvl){
     if ((newLvl >= 2) && (newLvl <= 4)) {
         privLvl = newLvl;
-        return 1;
+        return true;
     }
-    return 0;    
+    return false;
 }
 
 int CloseSessionCMD::process(const unsigned char* request, int reqLength, unsigned char* response){

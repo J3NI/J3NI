@@ -5,7 +5,16 @@
 class GetChannelAuthCMD;
 
 class GetSessionChalCMD:public I_Command{
+private:
+    unsigned char* userName_;
+    
+private:
+    unsigned char verifyUserName(const unsigned char* uname) const;
+    
 public:
+    GetSessionChalCMD(const char* userName);
+    virtual ~GetSessionChalCMD();
+    
     int process(const unsigned char* request, int reqLength, unsigned char* response );
 };
 
@@ -15,7 +24,7 @@ private:
 public:
     SetSessionPrivCMD();
     unsigned char getPrivLvl();
-    int setPrivLvl(const unsigned char newLvl);
+    bool setPrivLvl(const unsigned char newLvl);
     int process(const unsigned char* request, int reqLength, unsigned char* response );
 };
 
