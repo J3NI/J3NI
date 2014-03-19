@@ -43,8 +43,10 @@ public:
         TS_ASSERT_EQUALS(testResponse.length(), 42);
     }
     void testGetSessionChallenge_Auth_WrongName(void) {
+        MsgHandler::clearCMD();
+        MsgHandler::initCMD("ANN");
+        
         TS_TRACE("Testing Get Session Challenge Command with user name authentication requested");
-        TS_WARN("THIS TEST will FAIL until authentication is implemented");
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x39;
         blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x04;
         blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x41; //"A"
@@ -65,7 +67,7 @@ public:
         TS_TRACE("Testing Set Session Privilege Level Command");
         
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x3b;
-        blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x04;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x04;
         IpmiMessage request(blank_request, 22);
         IpmiMessage testResponse;
         MsgHandler::processRequest(request, testResponse);
@@ -78,7 +80,7 @@ public:
         TS_TRACE("Testing Set Session Privilege Level Command");
         
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x3b;
-        blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x05;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x05;
         IpmiMessage request(blank_request, 22);
         IpmiMessage testResponse;
         MsgHandler::processRequest(request, testResponse);
@@ -90,7 +92,7 @@ public:
         TS_TRACE("Testing Set Session Privilege Level Command");
         
         blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x3b;
-        blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x00;
+        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x00;
         IpmiMessage request(blank_request, 22);
         IpmiMessage testResponse;
         MsgHandler::processRequest(request, testResponse);

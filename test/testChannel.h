@@ -43,7 +43,7 @@ class TestCHANNELSuite : public CxxTest::TestSuite
         MsgHandler::processRequest(request, testResponse);
         TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK);
 	TS_ASSERT_EQUALS(testResponse.data()[1], 0x01); // Channel number
-	TS_ASSERT_EQUALS(testResponse.data()[2], 0x01); // Auth Type
+	TS_ASSERT_EQUALS(testResponse.data()[2], 0x11); // Auth Type
 	TS_ASSERT_EQUALS(testResponse.data()[3], 0x1f);
 	TS_ASSERT_EQUALS(testResponse.data()[4], 0x00); // reserved for IPMIv1.5
 	TS_ASSERT_EQUALS(testResponse.data()[5], 0x00);
