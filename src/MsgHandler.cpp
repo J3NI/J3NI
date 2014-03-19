@@ -1,17 +1,4 @@
 #include <MsgHandler.h>
-#include <IpmiMessage.h>
-#include <IpmiCommandDefines.h>
-#include <BashScriptDefines.h>
-
-#include <ChassisCMD.h>
-#include <ChannelCMD.h>
-#include <LANCMD.h>
-#include <PefCMD.h>
-#include <SessionCMD.h>
-#include <SoLCMD.h>
-
-#include <fstream>
-#include <stdlib.h>
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
