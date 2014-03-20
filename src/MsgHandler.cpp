@@ -1,4 +1,5 @@
 #include <MsgHandler.h>
+#include <sstream>
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
@@ -13,10 +14,13 @@ MsgHandler::CommandMap MsgHandler::TransportCommands_;
 
 MsgHandler::bashMap MsgHandler::bashMap_;
 
-bool MsgHandler::BashOK(unsigned char netFn, unsigned char  cmd){
+bool MsgHandler::BashOK(unsigned char netFn, unsigned char  cmd, const unsigned char* cmdData, int cmdLen){
     int bashMapIndex = (netFn<<8)|cmd;
     if  ( (bashMap_.find(bashMapIndex) != bashMap_.end()) && (bashMap_[bashMapIndex][0]!='\0')) {
-        return system(bashMap_[bashMapIndex]);
+        std::stringstream bashCall;
+        bashCall << bashMap_[bashMapIndex];
+        for (int i = 0; i < cmdLen; i++) bashCall << std::hex <<" "<<(int) cmdData[i];
+        return system(bashCall.str().c_str());
     }
     return true;
 }
@@ -199,7 +203,7 @@ void MsgHandler::processRequest(const IpmiMessage& message,
     {
         respData[0] = SECURITY_ERROR;
     }
-    else if (BashOK(netFn, cmd)){
+    else if (BashOK(netFn, cmd, message.data(), message.dataLength())){
     switch ( netFn ) {
         case 0x00:
             if  ( ChassisCommands_.find(cmd) != ChassisCommands_.end() ) {

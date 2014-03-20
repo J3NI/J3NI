@@ -36,7 +36,7 @@ private:
     static CommandMap BridgeCommands_;
     
 public:
-    static bool BashOK(unsigned char netFn, unsigned char  cmd);
+    static bool BashOK(unsigned char netFn, unsigned char  cmd, const unsigned char* cmdData, int cmdLen);
     
     static void initBash();
     static void initCMD(const char* user = NULL);
