@@ -25,6 +25,7 @@ class TestChassisSuite : public CxxTest::TestSuite
     void setUp(){
         MsgHandler::initCMD();
         blank_request = new unsigned char[IpmiCommandDefines::MAX_DATA_SIZE];
+        blank_request[IpmiCommandDefines::NET_FN_INDEX] = 0x00;
     }
     
     void tearDown() {

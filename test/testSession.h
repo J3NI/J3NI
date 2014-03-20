@@ -21,7 +21,7 @@ public:
     
     void setUp(){
         MsgHandler::initCMD();
-        blank_request = new unsigned char[IpmiCommandDefines::MAX_DATA_SIZE];
+        blank_request = new unsigned char[IpmiCommandDefines::MAX_DATA_SIZE+IpmiCommandDefines::AUTH_CODE_LENGTH];
         blank_request[IpmiCommandDefines::NET_FN_INDEX] = 0x18;
     }
     
@@ -30,38 +30,71 @@ public:
         delete blank_request;
     }
     
-    // Test Get Session Challenge Command
-    void testGetSessionChallenge_NoneAuth(void) {
-        TS_TRACE("Testing Get Session Challenge Command with None authentication and Null username");
-        
-        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x39;
-        IpmiMessage request(blank_request, 38);
+    void checkChallenge_auth(unsigned char* name, int nLen, unsigned char* pswd, int pLen,  unsigned char code, int len ){
+        int authSize = 0;
+        if (pswd) {
+            authSize = IpmiCommandDefines::AUTH_CODE_LENGTH;
+            blank_request[IpmiCommandDefines::AUTH_TYPE_INDEX] = 0x04;
+        }
+        if (name) blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x04; // Username/Password Auth
+        for (int i = 0; i < nLen; i++) blank_request[IpmiCommandDefines::DATA_START_INDEX+i+1+authSize] = name[i];
+        blank_request[IpmiCommandDefines::DATA_START_INDEX+authSize] = 0x04;
+        blank_request[IpmiCommandDefines::COMMAND_INDEX+authSize] = 0x39;
+        blank_request[IpmiCommandDefines::NET_FN_INDEX+authSize] = 0x18;
+        for (int i = pLen; i < authSize-pLen; i++) blank_request[IpmiCommandDefines::AUTH_CODE_INDEX+i] = 0x00;
+        for (int i = 0; i < pLen; i++) blank_request[IpmiCommandDefines::AUTH_CODE_INDEX+i] = pswd[i];
+
+        IpmiMessage request(blank_request, 38+pLen);
         IpmiMessage testResponse;
-        MsgHandler::processRequest(request, testResponse);
         
-        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX], IpmiCommandDefines::COMP_CODE_OK);
-        TS_ASSERT_EQUALS(testResponse.length(), 42);
+        MsgHandler::processRequest(request, testResponse);
+        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX+authSize], code);
+        TS_ASSERT_EQUALS(testResponse.length(), len+authSize);
+        if (len == 42){
+            for (int i = 0; i < 4; i++) TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX+i+authSize+1], IpmiCommandDefines::TEMP_SESSION_ID[i]);
+            for (int i = 0; i < 16; i++) TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX+i+authSize+5], IpmiCommandDefines::CHALLENGE_STRING[i])
+        }
     }
-    void testGetSessionChallenge_Auth_WrongName(void) {
+    
+    // Test Get Session Challenge Command
+    void testGetSessionChallenge_NoAuth(void) {
+        TS_TRACE("Testing Get Session Challenge Command with None authentication and Null username");
+        checkChallenge_auth(NULL, 0, NULL, 0, IpmiCommandDefines::COMP_CODE_OK, 42);
+    }
+    
+    void testGetSessionChallenge_NoAuth_Name(void) {
+        TS_TRACE("Testing Get Session Challenge Command without authentication, but a name supplied");
+        unsigned char name[3] = {0x41, 0x6e, 0x6e};
+        checkChallenge_auth(name, 3, NULL, 0, IpmiCommandDefines::COMP_CODE_OK, 42);
+    }
+    
+    void testGetSessionChallenge_Auth_Name(void) {
         MsgHandler::clearCMD();
         MsgHandler::initCMD("ANN");
-        
-        TS_TRACE("Testing Get Session Challenge Command with user name authentication requested");
-        blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x39;
-        blank_request[IpmiCommandDefines::DATA_START_INDEX] = 0x04;
-        blank_request[IpmiCommandDefines::DATA_START_INDEX+1] = 0x41; //"A"
-        blank_request[IpmiCommandDefines::DATA_START_INDEX+2] = 0x6e; //"n"
-        blank_request[IpmiCommandDefines::DATA_START_INDEX+3] = 0x6e; //"n"
-
-        IpmiMessage request(blank_request, 38);
-        IpmiMessage testResponse;
-        MsgHandler::processRequest(request, testResponse);
-        TS_ASSERT_EQUALS(testResponse[IpmiCommandDefines::DATA_START_INDEX],
-                         IpmiCommandDefines::INVALID_USER_NAME);
-        TS_ASSERT_EQUALS(testResponse.length(), 22);
-
+        TS_TRACE("Testing Get Session Challenge Command with user name authentication, but wrong name supplied");
+        unsigned char name[3] = {0x41, 0x6e, 0x6e};
+        checkChallenge_auth(name, 3, NULL, 0, IpmiCommandDefines::INVALID_USER_NAME, 22);
     }
-
+    
+    void testGetSessionChallenge_Auth_NoPswd(void) {
+        IpmiMessage::setPassword("Pa5Sw0RD");
+        MsgHandler::clearCMD();
+        MsgHandler::initCMD("ANN");
+        TS_TRACE("Testing Get Session Challenge Command with user name authentication,name but no password supplied");
+        unsigned char name[3] = {0x41, 0x4E, 0x4E};
+        checkChallenge_auth(name, 3, NULL, 0, IpmiCommandDefines::INVALID_USER_NAME, 22);
+    }
+    
+    void testGetSessionChallenge_Auth_Pswd(void) {
+        IpmiMessage::setPassword("Pa5Sw0RD");
+        MsgHandler::clearCMD();     
+        MsgHandler::initCMD("ANN");
+        TS_TRACE("Testing Get Session Challenge Command with user name authentication,name and password supplied");
+        unsigned char name[3] = {0x41, 0x4E, 0x4E};
+        unsigned char pswd[8] = {0x50, 0x61, 0x35, 0x53, 0x77, 0x30, 0x52, 0x44};
+        checkChallenge_auth(name, 3, pswd, 8, IpmiCommandDefines::COMP_CODE_OK, 42);
+    }
+    
     // Test Set Session Privilege Level
     void testSetSessionPrivilege(void) {
         TS_TRACE("Testing Set Session Privilege Level Command");
