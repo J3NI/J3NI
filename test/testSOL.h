@@ -65,7 +65,6 @@ class TestSOLSuite : public CxxTest::TestSuite
 	TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK); 
 	
 	TS_TRACE("Check functionality");
-	//Test if it actually set stuff, maybe a better way to check other than use the get func?
 	blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x22;
 	blank_request[IpmiCommandDefines::COMMAND_INDEX+1] = 0x01; //Channel 1 default
 	blank_request[IpmiCommandDefines::COMMAND_INDEX+2] = 0x05; //Check NV bit rate
@@ -75,6 +74,17 @@ class TestSOLSuite : public CxxTest::TestSuite
         TS_ASSERT_EQUALS(testResponse2.data()[0], IpmiCommandDefines::COMP_CODE_OK); 
 	TS_ASSERT_EQUALS(testResponse2.data()[1], 0x01) // Parameter Revision should be 1
 	TS_ASSERT_EQUALS(testResponse2.data()[2], 0x06) // default bit rate value
+    }
+
+    //---------------------------------------------------
+    //--------------- TEST SOL Activate    --------------
+    void testSoLActivate(void){
+	TS_TRACE("Testing SoL Activate");
+	blank_request[IpmiCommandDefines::COMMAND_INDEX] = 0x20;
+	IpmiMessage request(blank_request, 23);
+	IpmiMessage testResponse;
+	MsgHandler::processRequest(request, testResponse);
+	TS_ASSERT_EQUALS(testResponse.data()[0], IpmiCommandDefines::COMP_CODE_OK); 
     }
 };
 
