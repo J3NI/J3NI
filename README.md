@@ -27,3 +27,21 @@ Running the test suite: <br/>
 1) While compiling, type in ../tools/build/waf configure build --test and ../tools/build/waf install --test <br/>
 2) Change your directory to the bin directory where the TestJ3NI executable is. <br/>
 3) Type in ./TestJ3NI
+
+Technical Specifications
+=========================
+**Operating System Compatibility:** Mac OS and Ubuntu
+
+**Hypervisor Compatibility:** VirtualBox, QEMU KVM
+
+**Programming Language:** C++
+
+**Development:** Open Source 
+
+**Licensing:** BSD 3-Clause
+
+**Testsuite:** CxxTest
+
+**Testsuite requirements:** C++ Compiler, Python
+
+**Software Build System:** Waf (written in Python)
