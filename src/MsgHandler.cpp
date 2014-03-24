@@ -2,7 +2,6 @@
 #include <sstream>
 
 using namespace IpmiCommandDefines;
-extern std::ofstream log_file;
 
 MsgHandler::CommandMap MsgHandler::ChassisCommands_;
 MsgHandler::CommandMap MsgHandler::BridgeCommands_;

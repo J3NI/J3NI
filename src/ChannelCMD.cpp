@@ -1,6 +1,8 @@
+#include <fstream>
+#include <syslog.h>
+
 #include <ChannelCMD.h>
 #include <IpmiCommandDefines.h>
-#include <fstream>
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
@@ -10,6 +12,7 @@ GetChannelAuthCMD::GetChannelAuthCMD():channelNum(CHANNEL_NUMBER){}
 
 int GetChannelAuthCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
+    syslog(LOG_NOTICE, "Processing Get Channel Authentication CMD");
     log_file << "In GetChannelAuthCMD" << std::endl;
     
     response[0] = COMP_CODE_OK;
@@ -39,6 +42,8 @@ unsigned char GetChannelAuthCMD::getChannelNum(){
 GetChannelInfoCMD::GetChannelInfoCMD(GetChannelAuthCMD* getAuth): getAuthCMD(getAuth) {}
 int GetChannelInfoCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
+    syslog(LOG_NOTICE, "Processing Get Channel Info CMD");
+    
     log_file << "Processing Get Channel Info CMD" << std::endl;
     response[0] = COMP_CODE_OK;	// Completion code
     if(request[0]==0x0E) 	// return channel num for channel cmd was received on
@@ -62,6 +67,7 @@ SetChannelAccessCMD::SetChannelAccessCMD(): accessSettings(0x3f), privLvl(0x04) 
 
 int SetChannelAccessCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
+    syslog(LOG_NOTICE, "Processing Set Channel Access CMD");
     log_file << "Processing Set Channel Access CMD" << std::endl;
     unsigned char setMask = 0xC0;
     unsigned char accMask = 0x1F;
@@ -95,6 +101,7 @@ GetChannelAccessCMD::GetChannelAccessCMD(SetChannelAccessCMD* chanAcc): chanAccC
 
 int GetChannelAccessCMD::process(const unsigned char* request, int reqLength, unsigned char* response)
 {
+    syslog(LOG_NOTICE, "Processing Get Channel Access CMD");
     log_file << "Processing Get Channel Access CMD" << std::endl;
     response[0] = COMP_CODE_OK;
     response[1] = chanAccCMD->getSettings();

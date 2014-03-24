@@ -7,6 +7,7 @@
 // System Includes
 #include <stdio.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include <fstream>
@@ -26,7 +27,6 @@ ofstream log_file("J3NI_log_file.log", ios_base::out | ios_base::app );
 
 int main(int args, char** argv)
 {
-
     int portnum=8087;
     char* user = NULL;
     char* password = NULL;
@@ -41,6 +41,7 @@ int main(int args, char** argv)
 	    if(portnum==0)
        {
 		    cout<< "Invalid input entered\n";
+           closelog();
 		    exit(EXIT_FAILURE);
 	    }
     }
@@ -51,6 +52,7 @@ int main(int args, char** argv)
 			    portnum=atoi(argv[i+1]);
 			    if(portnum==0){
 				    cout<< "Invalid input entered\n";
+                    closelog();
 				    exit(EXIT_FAILURE);
 			    }		
 			    portSet=true;
@@ -64,11 +66,13 @@ int main(int args, char** argv)
 	    }
 	    if(!portSet || !user || !password){	// If not all fields are set, exit
           cout<< "Invalid input entered\n";
+            closelog();
 		    exit(EXIT_FAILURE);
 	    }
     }
     else{
 	    cout<< "Invalid input entered\n";
+        closelog();
 	    exit(EXIT_FAILURE);
     }
     
@@ -81,12 +85,14 @@ int main(int args, char** argv)
     
     udpDaemon->startServer();
     
+    openlog("J3NI", LOG_PID|LOG_NDELAY|LOG_CONS, LOG_DAEMON);
     while(1)
     {
         udpDaemon->receiveData();
         sleep(IpmiCommandDefines::SERVER_WAIT_TIME);
     }
     MsgHandler::clearCMD();
+    closelog();
    
     delete udpDaemon;
     return 0;

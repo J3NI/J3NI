@@ -16,8 +16,6 @@
 
 using namespace IpmiCommandDefines;
 
-extern std::ofstream log_file;
-
 uint32_t IpmiMessage::inboundSequenceNumber_ = 0;
 uint32_t IpmiMessage::outboundSequenceNumber_ = 0;
 uint32_t IpmiMessage::sessionId_ = 0;
@@ -221,6 +219,7 @@ void IpmiMessage::setPassword(const char* password)
 {
     if(password != NULL)
     {
+        
         for(int i = 0; (i < 16) && (password[i] != '\0'); i++)
         {
             password_[i] = password[i];

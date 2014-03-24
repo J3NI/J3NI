@@ -1,8 +1,10 @@
+#include <fstream>
+#include <stdexcept>
+#include <syslog.h>
+
 #include <MsgHandler.h>
 #include <ChassisCMD.h>
 #include <IpmiCommandDefines.h>
-#include <fstream>
-#include <stdexcept> 
 
 using namespace IpmiCommandDefines;
 extern std::ofstream log_file;
@@ -11,6 +13,7 @@ GetChassisCapabCMD::GetChassisCapabCMD(): fruAddress(0x00), sdrAddress(0x20), se
 
 int  GetChassisCapabCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
+    syslog(LOG_NOTICE, "Processing Get Chassiz Capabilities CMD");
     log_file << "Get Chassis Capabilities Command" << std::endl;
     
     response[0] = COMP_CODE_OK;
@@ -56,6 +59,7 @@ void GetChassisCapabCMD::setAllFields(const unsigned char* data, int bridgeSet)
         sysMgmtAddress = data[4];
         if (bridgeSet == 6) bridgeAddress = data[5];
     } else {
+        syslog(LOG_ERR, "Recieved Set Chassis Capabilities CMD request provided less that 5 data bytes");
         log_file << "Recieved Set Chassis Capabilities CMD request provided less that 5 data bytes"<<std::endl;
     }
 
@@ -107,14 +111,15 @@ int GetChassisStatusCMD::getCurrentPower()
 
 int  GetChassisStatusCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
-        log_file << "Get Chassis Status Command" << std::endl;
+    syslog(LOG_NOTICE, "Processing Get Chassis Status CMD");
+    log_file << "Get Chassis Status Command" << std::endl;
     
-        response[0] = COMP_CODE_OK;
-        response[1] = curPowerState;
-        response[2] = lastPowerEvent;
-        response[3] = miscChassisState;
+    response[0] = COMP_CODE_OK;
+    response[1] = curPowerState;
+    response[2] = lastPowerEvent;
+    response[3] = miscChassisState;
     
-        return 4;
+    return 4;
 }
 
 ChassisCntrlCMD::ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd, GetChassisRestartCause* restartCause, GetChassisPOHCounter* pohCmd)
@@ -127,19 +132,27 @@ ChassisCntrlCMD::ChassisCntrlCMD(GetChassisStatusCMD* chassisStatusCmd, GetChass
 
 int ChassisCntrlCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
+    const char* logMessage = "Processing Chassis Control CMD%s";
+    const char* powerState = "";
+    
     log_file << "Chassis Control Command: " << std::flush;
     response[0] = COMP_CODE_OK;
     
     if (request[0] == 0x00 || request[0] == 0x05 ) {
+        powerState = ": power off";
+        syslog(LOG_NOTICE, logMessage, powerState);
         log_file << " power off " << std::endl;
         statusCmd_->setPowerState(0);
     } else if (request[0] == 0x01) {
+        powerState = ": power on";
+        syslog(LOG_NOTICE, logMessage, powerState);
         log_file << " power on " << std::endl;
         statusCmd_->setLastPowerEvent(0x10);
         statusCmd_->setPowerState(1);
 
         poh_->resetStartTime();
     } else if (request[0] == 0x02 || request[0] == 0x03 ) {
+        syslog(LOG_NOTICE, logMessage, powerState);
         if ( !statusCmd_->getCurrentPower() ) response[0] = CANNOT_EXEC_IN_CUR_STATE;
         else{
             statusCmd_->setPowerState(1);

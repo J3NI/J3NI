@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <syslog.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -81,7 +82,8 @@ void DaemonServer::startDaemon()
     // Run in root directory
     chdir("/");
     
-    log_file << "Daemon started successfully\n" << std::endl;
+    syslog(LOG_NOTICE, "Daemon started successfully");
+    log_file << "Daemon started successfully" << std::endl;
 }
 
 
@@ -121,6 +123,7 @@ void DaemonServer::receiveData()
     {
         IpmiMessage recievedMsg(buf, recvLen);
         // Print received message to log
+        syslog(LOG_NOTICE, "Recieved Message of size %d", recievedMsg.length());
         log_file << "Received a message of size "<< recievedMsg.length() << std::endl;
         logMessage(recievedMsg);
         
@@ -138,15 +141,22 @@ void DaemonServer::receiveData()
       
         // Send response
         if (sendto(sock, response.message(), response.length(), 0, (struct sockaddr *)&remoteAddr, addrlen) < 0)
+        {
+            syslog(LOG_ERR, "Error Sending Response\n");
             log_file << "Error sending response\n";
+        }
         else
+        {
             // Print sent message to log
+            syslog(LOG_NOTICE, "Sent Message of size %d", response.length());
             log_file << "Sent a message of size "<< response.length() << std::endl;
+            logMessage(response);
+        }
         
-        logMessage(response);
     }
     else
     {
+        syslog(LOG_ERR, "Error Recieving Request\n");
         log_file << "Could not receive request.\n";
     }
     

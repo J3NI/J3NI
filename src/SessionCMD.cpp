@@ -1,3 +1,5 @@
+#include <syslog.h>
+
 #include <SessionCMD.h>
 #include <ChannelCMD.h>
 #include <IpmiCommandDefines.h>
@@ -47,6 +49,7 @@ unsigned char GetSessionChalCMD::verifyUserName(const unsigned char* uname) cons
 }
 
 int GetSessionChalCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
+    syslog(LOG_NOTICE, "Processing Get Session Challenge CMD");
     log_file << "Processing Get Session Challenge CMD" << std::endl;
     
     response[0] = COMP_CODE_OK;
@@ -90,6 +93,7 @@ bool ActSessionCMD::verifyChalString(const unsigned char* data){
 }
 
 int ActSessionCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
+    syslog(LOG_NOTICE, "Processing Activate Session CMD");
     log_file << "Processing Activate Session CMD" << std::endl;
     if (!verifyTempID(request)) response[0] = INVALID_SESSION_ID;
     else if (!verifyChalString(request) ) response[0] = UNKNOWN_ERROR;
@@ -109,6 +113,7 @@ int ActSessionCMD::process(const unsigned char* request, int reqLength, unsigned
 SetSessionPrivCMD::SetSessionPrivCMD(): privLvl(0x04){}
 
 int SetSessionPrivCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
+    syslog(LOG_NOTICE, "Processing Set Session Privilege Level CMD");
     log_file << "Processing Set Session Privilege Level CMD" << std::endl;
     if (setPrivLvl(request[0]) || request[0] == 0x01) {
         response[0] =  COMP_CODE_OK ;
@@ -132,6 +137,7 @@ bool SetSessionPrivCMD::setPrivLvl(const unsigned char newLvl){
 }
 
 int CloseSessionCMD::process(const unsigned char* request, int reqLength, unsigned char* response){
+    syslog(LOG_NOTICE, "Closing Session");
     log_file << "Closing session" << std::endl;
     response[0] = COMP_CODE_OK;
     return 1;

@@ -1,3 +1,4 @@
+#include <syslog.h>
 
 #include <SoLCMD.h>
 
@@ -48,6 +49,7 @@ GetSoLConfigCMD::~GetSoLConfigCMD(){
 
 int GetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
+    syslog(LOG_NOTICE, "Processing Get SoL Configuration Parameters CMD");
     log_file << "Get SoL Configuration Parameters Command" << std::endl;
     response[0] = COMP_CODE_OK;
     
@@ -57,7 +59,7 @@ int GetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsig
     // The following checks that the requested channel is the currently active one
     // Remove the check if command should treat all channels as one
     if ((request[0]&channelMask)==getAuthCMD->getChannelNum()){
-        log_file << "Getting parameters for this channel" << std::endl;    
+        log_file << "Getting parameters for this channel" << std::endl;
         if ((((request[0]&revMask) == revMask) && ((SOLparamMap[request[1]]->rev) > 0)) || (request[0]&revMask)==0){
             if  ( SOLparamMap.find(request[1]) != SOLparamMap.end() ) {
                 response[1] = SOLparamMap[request[1]]->rev;
@@ -92,13 +94,14 @@ SetSoLConfigCMD::SetSoLConfigCMD(GetSoLConfigCMD * SOLConfigCmd, GetChannelAuthC
 
 int SetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
-    log_file << "Set SoL Configuration Parameters Command" << std::endl;    
+    syslog(LOG_NOTICE, "Processing Set SoL Configuration Parameters CMD");
+    log_file << "Set SoL Configuration Parameters Command" << std::endl;
     unsigned char channelMask = 0xF;
     
     // The following checks that the requested channel is the currently active one
     // Remove the check if command should treat all channels as one
     if ((request[0]&channelMask)==getAuthCMD->getChannelNum()){
-        log_file << "Setting parameters for this channel" << std::endl;
+        syslog(LOG_NOTICE, "Setting parameters for this channel CMD");
         if (SOLConfigCMD->setMap(request[1], request, (reqLength-2))) response[0] = COMP_CODE_OK;
         else response[0] = PARAM_UNSUPPORTED;
     } else {
@@ -110,6 +113,7 @@ int SetSoLConfigCMD::process( const unsigned char* request, int reqLength, unsig
 
 int SoLActivatingCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
+    syslog(LOG_NOTICE, "Processing SoL Activating CMD");
     log_file << "SoL Activating Command" << std::endl;
     response[0] = COMP_CODE_OK;
     return 1;

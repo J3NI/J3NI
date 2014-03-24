@@ -1,3 +1,5 @@
+#include <syslog.h>
+
 #include <LANCMD.h>
 #include <ChannelCMD.h>
 
@@ -69,6 +71,7 @@ GetLANConfigCMD::~GetLANConfigCMD(){
 
 int GetLANConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
+    syslog(LOG_NOTICE, "Processing Get LAN Configuration Parameters CMD");
     log_file << "Get LAN Configuration Parameters Command" << std::endl;
     response[0] = COMP_CODE_OK;
     
@@ -113,7 +116,8 @@ SetLANConfigCMD::SetLANConfigCMD(GetLANConfigCMD * LANConfigCmd, GetChannelAuthC
 
 int SetLANConfigCMD::process( const unsigned char* request, int reqLength, unsigned char* response )
 {
-    log_file << "Set LAN Configuration Parameters Command" << std::endl;    
+    syslog(LOG_NOTICE, "Processing set LAN configuration parameters Command");
+    log_file << "Set LAN Configuration Parameters Command" << std::endl;
     unsigned char channelMask = 0xF;
     
     // The following checks that the requested channel is the currently active one

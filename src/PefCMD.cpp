@@ -8,6 +8,7 @@
 
 #include <fstream>
 #include <stdlib.h>
+#include <syslog.h>
 #include <time.h>
 
 #include <PefCMD.h>
@@ -33,7 +34,8 @@ unsigned char GetPefCapabCMD::getPefCapab() const
 int GetPefCapabCMD::process(const unsigned char* req, int reqLength,
                           unsigned char* resp)
 {
-    log_file << "Get PEF Capabilities Command" << std::endl;
+    syslog(LOG_NOTICE, "Processing Get PEF Capabilities Command");
+    log_file << "Processing Get PEF Capabilities Command\n";
     
     resp[0] = COMP_CODE_OK;
     resp[1] = 0x51;
@@ -52,6 +54,7 @@ ArmPefPostponeTimerCMD::ArmPefPostponeTimerCMD() : countdownDuration(0)
 int ArmPefPostponeTimerCMD::process(const unsigned char* req, int reqLength,
                                     unsigned char* resp)
 {
+    syslog(LOG_NOTICE, "Processing Arm PEF Postpone Timer CMD");
     log_file << "Arm PEF Postpone Timer Command" << std::endl;
     
     time_t t = time(0);
@@ -74,6 +77,7 @@ int ArmPefPostponeTimerCMD::process(const unsigned char* req, int reqLength,
     resp[1] = countdownValue;    
     return 2;
 }
+
 
 GetPefConfigParamCMD::GetPefConfigParamCMD()
 {
@@ -151,6 +155,7 @@ unsigned char GetPefConfigParamCMD::setMap(unsigned char param,
 int GetPefConfigParamCMD::process(const unsigned char* req, int reqLength,
                                   unsigned char* resp)
 {
+    syslog(LOG_NOTICE, "Processing Get PEF Configuration Parameters CMD");
     log_file << "Get PEF Configuration Parameters Command" << std::endl;
     resp[0] = COMP_CODE_OK;
     resp[1] = 0x11;
@@ -183,6 +188,7 @@ SetPefConfigParamCMD::SetPefConfigParamCMD(GetPefConfigParamCMD* getPefConfigPar
 int SetPefConfigParamCMD::process(const unsigned char* req, int reqLength,
                                   unsigned char* resp)
 {
+    syslog(LOG_NOTICE, "Processing Set PEF Configuration Parameters CMD");
     log_file << "Set PEF Configuration Parameters Command" << std::endl;
 
     unsigned char paramSelector = req[0] & 0x7F;
@@ -229,6 +235,7 @@ uint16_t GetLastProcEventIdCMD::getSwRecordId() const
 int GetLastProcEventIdCMD::process(const unsigned char* req, int reqLength,
                                    unsigned char* resp)
 {
+    syslog(LOG_NOTICE, "Processing Get Last Proccessed Event Id CMD");
     log_file << "Get Last Proccessed Event Id Command" << std::endl;
     
     resp[0] = COMP_CODE_OK;
@@ -254,6 +261,7 @@ SetLastProcEventIdCMD::SetLastProcEventIdCMD(GetLastProcEventIdCMD* lastProcEven
 int SetLastProcEventIdCMD::process(const unsigned char* req, int reqLength,
                                    unsigned char* resp)
 {
+    syslog(LOG_NOTICE, "Processing Set Last Proccessed Event Id CMD");
     log_file << "Set Last Proccessed Event Id Command" << std::endl;
     
     resp[0] = COMP_CODE_OK;
