@@ -22,6 +22,8 @@ public:
     void setUp(){
         MsgHandler::initCMD();
         blank_request = new unsigned char[IpmiCommandDefines::MAX_DATA_SIZE+IpmiCommandDefines::AUTH_CODE_LENGTH];
+        for(int i = 0; i < IpmiCommandDefines::MAX_DATA_SIZE+IpmiCommandDefines::AUTH_CODE_LENGTH; i++)
+            blank_request[i] = 0x00;
         blank_request[IpmiCommandDefines::NET_FN_INDEX] = 0x18;
     }
     
@@ -30,7 +32,7 @@ public:
         delete blank_request;
     }
     
-    void checkChallenge_auth(unsigned char* name, int nLen, unsigned char* pswd, int pLen,  unsigned char code, int len ){
+    void checkChallenge_auth(const unsigned char* name, int nLen, const unsigned char* pswd, int pLen,  unsigned char code, int len ){
         int authSize = 0;
         if (pswd) {
             authSize = IpmiCommandDefines::AUTH_CODE_LENGTH;
@@ -41,10 +43,9 @@ public:
         blank_request[IpmiCommandDefines::DATA_START_INDEX+authSize] = 0x04;
         blank_request[IpmiCommandDefines::COMMAND_INDEX+authSize] = 0x39;
         blank_request[IpmiCommandDefines::NET_FN_INDEX+authSize] = 0x18;
-        for (int i = pLen; i < authSize-pLen; i++) blank_request[IpmiCommandDefines::AUTH_CODE_INDEX+i] = 0x00;
         for (int i = 0; i < pLen; i++) blank_request[IpmiCommandDefines::AUTH_CODE_INDEX+i] = pswd[i];
 
-        IpmiMessage request(blank_request, 38+pLen);
+        IpmiMessage request(blank_request, 38+authSize);
         IpmiMessage testResponse;
         
         MsgHandler::processRequest(request, testResponse);
@@ -76,13 +77,14 @@ public:
         checkChallenge_auth(name, 3, NULL, 0, IpmiCommandDefines::INVALID_USER_NAME, 22);
     }
     
-    void testGetSessionChallenge_Auth_NoPswd(void) {
+    void testGetSessionChallenge_Auth_InvalidPswd(void) {
         IpmiMessage::setPassword("Pa5Sw0RD");
         MsgHandler::clearCMD();
         MsgHandler::initCMD("ANN");
         TS_TRACE("Testing Get Session Challenge Command with user name authentication,name but no password supplied");
         unsigned char name[3] = {0x41, 0x4E, 0x4E};
-        checkChallenge_auth(name, 3, NULL, 0, IpmiCommandDefines::INVALID_USER_NAME, 22);
+        unsigned char pswd[4] = {0x18, 0x79, 0xFF, 0x1E};
+        checkChallenge_auth(name, 3, pswd, 4, IpmiCommandDefines::SECURITY_ERROR, 22);
     }
     
     void testGetSessionChallenge_Auth_Pswd(void) {
